@@ -207,6 +207,8 @@ begin
 
   NextCountText.Text := ThumbImages.Count.ToString();
   StartDrawTime := Now;
+
+  ChangePen(True);
 end;
 
 function TMainForm.SaveResultFromFile(): Boolean;
