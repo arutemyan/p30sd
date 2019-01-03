@@ -2,5 +2,9 @@
 src/p30sd.dproj.local
 src/p30sd.identcache
 src/p30sd.stat
+src/Android/*
 *.dcu
 *.exe
+*.o
+src/Android/Release/libp30sd.so
+src/Android/Release/p30sd/debug/libp30sd.so
