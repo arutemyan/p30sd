@@ -205,7 +205,7 @@ begin
 
   CountTimer.Enabled := false;
 
-  self.NextCountText.Text := ThumbImages.Count.ToString();
+  NextCountText.Text := ThumbImages.Count.ToString();
   StartDrawTime := Now;
 end;
 
@@ -257,43 +257,38 @@ begin
     Exit();
   end;
 
-  try
+  BaseDir := '';
+{$IFDEF ANDROID32}
+  BaseDir := System.IOUtils.TPath.GetSharedPicturesPath() + '/';
+{$ENDIF}
+  TDirectory.CreateDirectory(BaseDir + 'result');
+  DateTimeToString(DateTimeString, 'yyyyMMdd_HHmmss_', Now);
+  BaseFileName := BaseDir + 'result/' + DateTimeString;
+  LineBrush := TStrokeBrush.Create(TBrushKind.Solid, TAlphaColors.Black);
 
-    BaseDir := '';
-    {$IFDEF ANDROID32}
-      baseDir := System.IOUtils.TPath.GetSharedPicturesPath() + '/';
-    {$ENDIF}
-    TDirectory.CreateDirectory(BaseDir + 'result');
-    DateTimeToString(DateTimeString, 'yyyyMMdd_HHmmss_', Now);
-    BaseFileName := BaseDir + 'result/' + DateTimeString;
-    LineBrush := TStrokeBrush.Create(TBrushKind.Solid, TAlphaColors.Black);
-
-    OldIdx := 0;
-    ImgCount := 0;
-    Bmp := TBitmap.Create();
-    Bmp.SetSize(ResultImageSize,ResultImageSize);
-    Bmp.Clear(TAlphaColorRec.White);
-    for I := 0 to ThumbImages.Count-1 do
+  OldIdx := 0;
+  ImgCount := 0;
+  Bmp := TBitmap.Create();
+  Bmp.SetSize(ResultImageSize,ResultImageSize);
+  Bmp.Clear(TAlphaColorRec.White);
+  for I := 0 to ThumbImages.Count-1 do
+  begin
+    if Trunc(I / ThumbnailMaxCountInImage) <> OldIdx then
     begin
-      if Trunc(I / ThumbnailMaxCountInImage) <> OldIdx then
-      begin
-        SaveFunc();
-        Bmp.Clear(TAlphaColorRec.White);
-        Inc(OldIdx);
-        ImgCount := 0;
-      end;
-      Bmp.CopyFromBitmap(
-        ThumbImages[I],
-        TRect.Create(0,0,ThumbImages[I].Width,ThumbImages[I].Height),
-        (ImgCount mod ThumbnailResultImageItemMax) * ThumbSize,
-        (ImgCount div ThumbnailResultImageItemMax) * ThumbSize);
-      Inc(ImgCount);
-      if I = (ThumbImages.Count-1) then begin
-         SaveFunc();
-      end;
+      SaveFunc();
+      Bmp.Clear(TAlphaColorRec.White);
+      Inc(OldIdx);
+      ImgCount := 0;
     end;
-  finally
-
+    Bmp.CopyFromBitmap(
+      ThumbImages[I],
+      TRect.Create(0,0,ThumbImages[I].Width,ThumbImages[I].Height),
+      (ImgCount mod ThumbnailResultImageItemMax) * ThumbSize,
+      (ImgCount div ThumbnailResultImageItemMax) * ThumbSize);
+    Inc(ImgCount);
+    if I = (ThumbImages.Count-1) then begin
+       SaveFunc();
+    end;
   end;
   Result := True;
 end;
@@ -312,8 +307,6 @@ begin
     FMX.Dialogs.ShowMessage('まだ開始していないか0枚です');
     Exit;
   end;
-
-  // todo もはやスレッドの意味がないのであとでけす
   if not ActivityDialog.IsShown then
   begin
     SaveProcessingThread := TThread.CreateAnonymousThread(procedure
@@ -336,13 +329,9 @@ begin
                   FMX.Dialogs.ShowMessage('保存に失敗しました');
                 end);
               end;
-              self.ResetDrawingSetting();
-            end);
-
-          TThread.Synchronize(nil, procedure
-            begin
-              SaveProcessingThread.Terminate;
+              ResetDrawingSetting();
               ActivityDialog.Hide;
+              SaveProcessingThread.Terminate;
             end);
           finally
             if not TThread.CheckTerminated then
@@ -425,7 +414,7 @@ begin
   if CountTimer.Enabled = false then
   begin
     // TotalTimeの帳尻をあわせる・・・。
-    self.InitialDrawTime := self.InitialDrawTime + (Now - StartDrawTime);
+    InitialDrawTime := self.InitialDrawTime + (Now - StartDrawTime);
     StartDrawTime := Now;
     CountTimer.Enabled := true;
   end;
