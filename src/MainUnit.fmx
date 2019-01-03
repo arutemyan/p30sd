@@ -1,0 +1,197 @@
+object MainForm: TMainForm
+  Left = 0
+  Top = 0
+  Caption = #21517#21069#12399#27770#12414#12387#12390#12356#12414#12379#12435
+  ClientHeight = 722
+  ClientWidth = 735
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnCloseQuery = FormCloseQuery
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Size.Width = 734.000000000000000000
+    Size.Height = 724.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 5
+    object PaintImage: TImage
+      MultiResBitmap.TransparentColor = -16777209
+      MultiResBitmap = <
+        item
+        end>
+      Align = Center
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      MarginWrapMode = Original
+      Size.Width = 746.000000000000000000
+      Size.Height = 724.000000000000000000
+      Size.PlatformDefault = False
+      OnMouseDown = PaintImageMouseDown
+      OnMouseMove = PaintImageMouseMove
+      OnMouseUp = PaintImageMouseUp
+      OnResized = PaintImageResized
+    end
+    object Text2: TText
+      Position.X = 80.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      Text = #32207#32076#36942#26178#38291
+      TextSettings.Font.Size = 22.000000000000000000
+      object DrawTimeText: TText
+        Position.X = 120.000000000000000000
+        Position.Y = -24.000000000000000000
+        Size.Width = 145.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        Text = '0:00:00'
+        TextSettings.Font.Size = 22.000000000000000000
+      end
+    end
+    object NextCountTextLabel: TText
+      Position.X = 408.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      Text = #25551#12356#12383#26522#25968
+      TextSettings.Font.Size = 22.000000000000000000
+      object NextCountText: TText
+        Position.Y = 24.000000000000000000
+        Size.Width = 121.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        Text = '0'
+        TextSettings.Font.Size = 22.000000000000000000
+      end
+    end
+    object Text1: TText
+      Position.X = 80.000000000000000000
+      Size.Width = 121.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      Text = #32076#36942#26178#38291
+      TextSettings.Font.Size = 22.000000000000000000
+      object TotalDrawTimeText: TText
+        Position.X = 120.000000000000000000
+        Position.Y = 24.000000000000000000
+        Size.Width = 145.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        Text = '0:00:00'
+        TextSettings.Font.Size = 22.000000000000000000
+      end
+    end
+    object UsePenButton: TButton
+      Position.X = 528.000000000000000000
+      Size.Width = 57.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Text = #12506#12531
+      OnClick = UsePenButtonClick
+    end
+    object UseEraserButton: TButton
+      Position.X = 584.000000000000000000
+      Size.Width = 57.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = #28040#12375#12468#12512
+      OnClick = UseEraserButtonClick
+    end
+  end
+  object Next: TButton
+    Anchors = [akTop, akRight]
+    Position.X = 653.000000000000000000
+    Size.Width = 80.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Next'
+    OnClick = NextClick
+  end
+  object Finish: TButton
+    Size.Width = 80.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = #32080#26524#12434#20445#23384
+    OnClick = FinishClick
+  end
+  object StartButton: TButton
+    Position.X = 344.000000000000000000
+    Size.Width = 65.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = #12522#12475#12483#12488
+    OnClick = StartButtonClick
+  end
+  object CountTimer: TTimer
+    Interval = 30
+    OnTimer = CountTimerTimer
+    Left = 584
+    Top = 632
+  end
+  object ThumbnailMultiView: TMultiView
+    PopoverOptions.StyleLookup = ''
+    PopoverOptions.PopupHeight = 300.000000000000000000
+    Mode = Drawer
+    NavigationPaneOptions.CollapsedWidth = 145.000000000000000000
+    Size.Width = 185.000000000000000000
+    Size.Height = 722.000000000000000000
+    Size.PlatformDefault = False
+    Visible = False
+    TabOrder = 9
+    object ThumbnailListView: TListView
+      ItemAppearanceClassName = 'TImageListItemAppearance'
+      ItemEditAppearanceClassName = 'TImageListItemDeleteAppearance'
+      HeaderAppearanceClassName = 'TCustomizeItemObjects'
+      FooterAppearanceClassName = 'TCustomizeItemObjects'
+      Images = ImageList1
+      Align = Right
+      Position.X = 33.000000000000000000
+      Size.Width = 152.000000000000000000
+      Size.Height = 722.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      ItemAppearance.ItemHeight = 128
+      ItemAppearance.ItemEditHeight = 128
+      ItemAppearance.HeaderHeight = 1
+      ItemAppearance.FooterHeight = 1
+      ItemAppearanceObjects.ItemObjects.Text.Font.Size = 11.000000000000000000
+      ItemAppearanceObjects.ItemObjects.Text.TextAlign = Center
+      ItemAppearanceObjects.ItemObjects.Text.TextColor = claBlack
+      ItemAppearanceObjects.ItemObjects.Text.Trimming = None
+      ItemAppearanceObjects.ItemObjects.Text.Width = 269.000000000000000000
+      ItemAppearanceObjects.ItemObjects.Text.Height = 128.000000000000000000
+      ItemAppearanceObjects.ItemObjects.Text.Align = Center
+      ItemAppearanceObjects.ItemObjects.Text.VertAlign = Center
+      ItemAppearanceObjects.ItemObjects.Text.PlaceOffset.X = -99.000000000000000000
+      ItemAppearanceObjects.ItemObjects.Image.Width = 128.000000000000000000
+      ItemAppearanceObjects.ItemObjects.Image.Height = 128.000000000000000000
+      ItemAppearanceObjects.ItemEditObjects.Text.Width = 127.000000000000000000
+      ItemAppearanceObjects.ItemEditObjects.Text.Height = 128.000000000000000000
+      ItemAppearanceObjects.FooterObjects.Image.Width = 256.000000000000000000
+      ItemAppearanceObjects.FooterObjects.Image.Height = 256.000000000000000000
+    end
+  end
+  object ImageList1: TImageList
+    Source = <>
+    Destination = <>
+    Left = 544
+    Top = 560
+  end
+  object GestureManager: TGestureManager
+    Sensitivity = 80.000000000000000000
+    Left = 456
+    Top = 584
+  end
+  object ActivityDialog: TfgActivityDialog
+    Message = #20966#29702#20013#12391#12377#12290#12375#12400#12425#12367#12362#24453#12385#19979#12373#12356#12290
+    Left = 312
+    Top = 392
+  end
+end
