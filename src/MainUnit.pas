@@ -301,8 +301,7 @@ end;
 
 procedure TMainForm.FinishClick(Sender: TObject);
 begin
-  // timer が動いていたらイメージ
-  // 書き出されてる可能性があるのでNextしとく
+  // timerが動いていたら何かしら描いてると思う
   if CountTimer.Enabled = True then
   begin
     OnNext();
@@ -368,8 +367,7 @@ begin
           ModalResult := true;
           // はいのときは保存処理をよんでおくか
 
-          // timer が動いていたらイメージ
-          // 書き出されてる可能性があるのでNextしとく
+          // timerが動いていたら何かしら描いてると思う
           if CountTimer.Enabled = True then
           begin
             OnNext();
@@ -398,7 +396,7 @@ begin
         end
       else
         begin
-          FMX.Dialogs.ShowMessage('このアプリの動作にはWRITE_EXTERNAL_STORAGEの権限が必要です');
+          FMX.Dialogs.ShowMessage('このアプリの動作にはストレージの権限が必要です');
         end;
     end);
 {$ENDIF}
