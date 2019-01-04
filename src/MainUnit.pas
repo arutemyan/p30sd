@@ -57,6 +57,7 @@ type
       Shift: TShiftState; X, Y: Single);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure PaintImageResized(Sender: TObject);
+    procedure ActivityDialogHide(Sender: TObject);
   private
     { private êÈåæ }
 
@@ -99,6 +100,11 @@ implementation
 
 {$R *.fmx}
 
+procedure TMainForm.ActivityDialogHide(Sender: TObject);
+begin
+  SaveProcessingThread.Terminate;
+end;
+
 procedure TMainForm.ChangePen(IsPen: Boolean);
 begin
   UsePenButton.Enabled := not IsPen;
@@ -123,8 +129,6 @@ begin
 end;
 
 procedure TMainForm.ResetDrawingSetting();
-var
-  I: Integer;
 begin
   if ThumbImages = nil then
   begin
@@ -200,12 +204,10 @@ begin
   ThumbImages.Add(Bmp);
   PaintImage.Bitmap.Clear(TAlphaColors.White);
 
-
   ListItem := ThumbnailListView.Items.Add();
   ListItem.Bitmap := Bmp;
   ListItem.Text := DrawTimeText.Text;
   ThumbnailListView.ItemIndex := ThumbnailListView.Items.Count-1;
-
 
   CountTimer.Enabled := false;
 
@@ -214,6 +216,7 @@ begin
 
   ChangePen(True);
 end;
+
 
 function TMainForm.SaveResultFromFile(): Boolean;
 var
@@ -227,7 +230,6 @@ var
   DateTimeString: string;
   BaseDir: string;
 begin
-
   SaveFunc := procedure
     var
       II: Integer;
@@ -307,7 +309,6 @@ begin
     OnNext();
   end;
 
-
   if ThumbImages.Count = 0 then begin
     FMX.Dialogs.ShowMessage('Ç‹ÇæäJénÇµÇƒÇ¢Ç»Ç¢Ç©0ñáÇ≈Ç∑');
     Exit;
@@ -329,14 +330,12 @@ begin
           TThread.Synchronize(nil, procedure
             begin
               if SaveResultFromFile() = False then begin
-                TThread.Synchronize(nil, procedure
-                begin
-                  FMX.Dialogs.ShowMessage('ï€ë∂Ç…é∏îsÇµÇ‹ÇµÇΩ');
-                end);
+                ActivityDialog.Hide;
+                FMX.Dialogs.ShowMessage('ï€ë∂Ç…é∏îsÇµÇ‹ÇµÇΩ');
+                Exit;
               end;
               ResetDrawingSetting();
               ActivityDialog.Hide;
-              SaveProcessingThread.Terminate;
             end);
         finally
           if not TThread.CheckTerminated then
@@ -349,7 +348,13 @@ begin
     SaveProcessingThread.FreeOnTerminate := False;
     SaveProcessingThread.Start;
   end;
-
+{$IFDEF WIN32 or WIN64}
+  if (SaveProcessingThread <> nil)
+    and (not SaveProcessingThread.Finished) then
+  begin
+    SaveProcessingThread.WaitFor;
+  end;
+{$ENDIF}
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -474,6 +479,8 @@ begin
     FDownPos := Point;
   end;
 end;
+
+
 procedure TMainForm.PaintImageMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
