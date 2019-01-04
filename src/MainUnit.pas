@@ -39,7 +39,6 @@ type
     UsePenButton: TButton;
     UseEraserButton: TButton;
     ActivityDialog: TfgActivityDialog;
-    SaveProcessingThread: TThread;
 
     procedure FormCreate(Sender: TObject);
     procedure PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -51,24 +50,22 @@ type
     procedure CountTimerTimer(Sender: TObject);
     procedure StartButtonClick(Sender: TObject);
 
-    procedure ResetDrawingSetting();
-    procedure OnNext();
-    function SaveResultFromFile(): Boolean; // 次へ
-    procedure ChangePen(IsPen: Boolean);
+
     procedure UsePenButtonClick(Sender: TObject);
     procedure UseEraserButtonClick(Sender: TObject);
     procedure PaintImageMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure PaintImageResized(Sender: TObject);
-    procedure OnResize();
   private
     { private 宣言 }
+
     FDownPos: TPointF;
     FPress: Boolean; // Android や端末だとDownをうまく拾ってくれないので。
     ThumbImages: TList<TBitmap>;
     StartDrawTime: TDateTime;
     InitialDrawTime: TDateTime;
+    SaveProcessingThread: TThread;
 
     // 一番最初のときはtrue. 次にMouseDownよばれたらFalse
     IsFirstStart: Boolean;
@@ -85,6 +82,12 @@ type
     // 並べるときに使用する
     const ThumbnailResultImageItemMax =
       Integer(Trunc(ResultImageSize / ThumbSize));
+
+    procedure ResetDrawingSetting();
+    procedure OnNext();
+    function SaveResultFromFile(): Boolean; // 次へ
+    procedure ChangePen(IsPen: Boolean);
+    procedure OnResize();
   public
     { public 宣言 }
   end;
@@ -161,6 +164,7 @@ var
 begin
   Bmp := TBitmap.Create();
 {$IFNDEF ANDROID32}
+  // AndroidだとTrueの場合しんでしまう。
   Bmp.Canvas.Blending := True;
 {$ENDIF}
   with Bmp do
@@ -315,9 +319,9 @@ begin
       begin
         try
           TThread.Synchronize(nil, procedure
-          begin
-            ActivityDialog.Show;
-          end);
+            begin
+              ActivityDialog.Show;
+            end);
 
           // ダイアログを出したいので、表示されるためだけのsleep
           // てきとー。
@@ -335,12 +339,12 @@ begin
               ActivityDialog.Hide;
               SaveProcessingThread.Terminate;
             end);
-          finally
-            if not TThread.CheckTerminated then
-              TThread.Synchronize(nil, procedure
-                begin
-                  ActivityDialog.Hide;
-                end);
+        finally
+          if not TThread.CheckTerminated then
+            TThread.Synchronize(nil, procedure
+              begin
+                ActivityDialog.Hide;
+              end);
         end;
       end);
     SaveProcessingThread.FreeOnTerminate := False;
