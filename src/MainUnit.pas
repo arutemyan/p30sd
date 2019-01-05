@@ -177,8 +177,8 @@ begin
     if Canvas.BeginScene then
       try
         Canvas.DrawBitmap(PaintImage.Bitmap,
-        TRectF.Create(0,0,PaintImage.Bitmap.Width, PaintImage.Bitmap.Height),
-        TRectF.Create(0,0,ThumbSize,ThumbSize), 1, False);
+          TRectF.Create(0,0,PaintImage.Bitmap.Width, PaintImage.Bitmap.Height),
+          TRectF.Create(0,0,ThumbSize,ThumbSize), 1, False);
       finally
         Canvas.EndScene;
       end;
@@ -197,8 +197,8 @@ begin
     Layout.Text := DrawTimeText.Text;
     Layout.EndUpdate;
     Layout.RenderLayout(Bmp.Canvas);
-    Bmp.Canvas.EndScene;
   finally
+    Bmp.Canvas.EndScene;
     Layout.Free;
   end;
   ThumbImages.Add(Bmp);
@@ -393,7 +393,8 @@ begin
   PermissionsService.RequestPermissions(
     [
       JStringToString(TJManifest_permission.JavaClass.WRITE_EXTERNAL_STORAGE),
-      JStringToString(TJManifest_permission.JavaClass.READ_EXTERNAL_STORAGE)],
+      JStringToString(TJManifest_permission.JavaClass.READ_EXTERNAL_STORAGE)
+    ],
     procedure(const APermissions: TArray<string>; const AGrantResults: TArray<TPermissionStatus>)
     begin
       if (Length(AGrantResults) >= 1) and (AGrantResults[0] = TPermissionStatus.Granted) then
@@ -440,9 +441,13 @@ var
   ImageCanvas: TCanvas;
   Point: TPointF;
 begin
-  if not ((ssLeft in Shift) or (ssTouch in Shift)) then begin
+
+  if not ((ssLeft in Shift) or (ssTouch in Shift)) then
+  begin
     Exit;
   end;
+
+  Point := TPointF.Create(X,Y);
 
   if FPress = False then
   begin
@@ -464,13 +469,11 @@ begin
         Stroke.Thickness := 1;
         Stroke.Color := TAlphaColors.Black;
         Stroke.Kind := TBrushKind.Solid;
-        Point := TPointF.Create(X,Y);
         DrawLine(FDownPos, Point, 1.0);
       end else begin
         Stroke.Thickness := 10;
         Stroke.Color := TAlphaColors.White;
         Stroke.Kind := TBrushKind.Solid;
-        Point := TPointF.Create(X,Y);
         DrawLine(FDownPos, Point, 1.0);
       end;
     finally
@@ -488,7 +491,17 @@ begin
 end;
 
 procedure TMainForm.OnResize();
+var
+  BufferTmp: TBitmap;
+  OffsetX, OffsetY, CopyWidth, CopyHeight: Integer;
 begin
+
+  BufferTmp := TBitmap.Create(
+    Trunc(PaintImage.Bitmap.Width),
+    Trunc(PaintImage.Bitmap.Height));
+  BufferTmp.CopyFromBitmap(
+    PaintImage.Bitmap);
+
   if Layout1.Width > Layout1.Height then begin
     PaintImage.Width := Layout1.Height;
     PaintImage.Height := Layout1.Height;
@@ -498,7 +511,27 @@ begin
     PaintImage.Height := Layout1.Width;
     PaintImage.Bitmap.SetSize(Floor(PaintImage.Width),Floor(PaintImage.Width));
   end;
+
+  OffsetX := Trunc((PaintImage.Width - BufferTmp.Width) / 2);
+  if OffsetX < 0 then
+    OffsetX := 0;
+  OffsetY := Trunc((PaintImage.Height - BufferTmp.Height) / 2);
+  if OffsetY < 0 then
+    OffsetY := 0;
+  CopyWidth := BufferTmp.Width;
+  if CopyWidth > PaintImage.Width then
+    CopyWidth := Trunc(PaintImage.Width);
+  CopyHeight := BufferTmp.Height;
+  if CopyHeight > PaintImage.Height then
+    CopyHeight := Trunc(PaintImage.Height);
+
   PaintImage.Bitmap.Clear(TAlphaColorRec.White);
+  PaintImage.Bitmap.CopyFromBitmap(
+    BufferTmp,
+    TRect.Create(0,0,CopyWidth,CopyHeight),
+    OffsetX, OffsetY);
+  BufferTmp.Free;
+
 end;
 
 procedure TMainForm.PaintImageResized(Sender: TObject);
