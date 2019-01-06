@@ -21,14 +21,11 @@ uses
 type
   TMainForm = class(TForm)
     PaintImage: TImage;
-    Next: TButton;
-    Finish: TButton;
     ThumbnailListView: TListView;
-    ImageList1: TImageList;
-    Layout1: TLayout;
+    ThumbImageList: TImageList;
+    BaseLayout: TLayout;
     TotalDrawTimeText: TText;
     CountTimer: TTimer;
-    StartButton: TButton;
     GestureManager: TGestureManager;
     ThumbnailMultiView: TMultiView;
     Text1: TText;
@@ -36,9 +33,18 @@ type
     DrawTimeText: TText;
     NextCountTextLabel: TText;
     NextCountText: TText;
-    UsePenButton: TButton;
-    UseEraserButton: TButton;
     ActivityDialog: TfgActivityDialog;
+    UseEraserButton: TSpeedButton;
+    UseEraserButtonImage: TImage;
+    UsePenButton: TSpeedButton;
+    UsePenButtonImage: TImage;
+    Next: TSpeedButton;
+    NextImage: TImage;
+    ResetButton: TSpeedButton;
+    ResetImage: TImage;
+    FinishButton: TSpeedButton;
+    FinishButtonImage: TImage;
+    IconImageList: TImageList;
 
     procedure FormCreate(Sender: TObject);
     procedure PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -46,9 +52,9 @@ type
     procedure PaintImageMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
     procedure NextClick(Sender: TObject);
-    procedure FinishClick(Sender: TObject);
+    procedure FinishButtonClick(Sender: TObject);
     procedure CountTimerTimer(Sender: TObject);
-    procedure StartButtonClick(Sender: TObject);
+    procedure ResetButtonClick(Sender: TObject);
 
 
     procedure UsePenButtonClick(Sender: TObject);
@@ -106,9 +112,24 @@ begin
 end;
 
 procedure TMainForm.ChangePen(IsPen: Boolean);
+var
+  Old: Boolean;
 begin
+  Old := UsePenButton.Enabled;
+
   UsePenButton.Enabled := not IsPen;
   UseEraserButton.Enabled := IsPen;
+
+  if Old <> UsePenButton.Enabled then
+  begin
+    if IsPen = True then begin
+      UsePenButtonImage.Bitmap := IconImageList.Bitmap(TSizeF.Create(128,128), 1);
+      UseEraserButtonImage.Bitmap := IconImageList.Bitmap(TSizeF.Create(128,128), 2);
+    end else begin
+      UsePenButtonImage.Bitmap := IconImageList.Bitmap(TSizeF.Create(128,128), 0);
+      UseEraserButtonImage.Bitmap := IconImageList.Bitmap(TSizeF.Create(128,128), 3);
+    end;
+  end;
 end;
 
 procedure TMainForm.CountTimerTimer(Sender: TObject);
@@ -117,15 +138,23 @@ var
   TotalSec: Int64;
 begin
   Sec := System.DateUtils.MilliSecondsBetween(StartDrawTime, Now);
-  DrawTimeText.Text := string.Format('%.2d:%.2d.%.3d',[
-    Floor(Sec/60000),
-    (Floor(Sec/1000) mod 60),
-    Sec mod 1000]);
+  DrawTimeText.Text := string.Format(
+    '%.2d:%.2d.%.3d',
+    [
+      Floor(Sec/60000),
+      (Floor(Sec/1000) mod 60),
+      Sec mod 1000
+    ]
+  );
   TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
-  TotalDrawTimeText.Text := string.Format('%.2d:%.2d.%.3d',[
-    Floor(TotalSec/60000),
-    (Floor(TotalSec/1000) mod 60),
-    TotalSec mod 1000]);
+  TotalDrawTimeText.Text := string.Format(
+    '%.2d:%.2d.%.3d',
+    [
+      Floor(TotalSec/60000),
+      (Floor(TotalSec/1000) mod 60),
+      TotalSec mod 1000
+    ]
+  );
 end;
 
 procedure TMainForm.ResetDrawingSetting();
@@ -147,9 +176,9 @@ begin
 
   StartDrawTime := Now;
   InitialDrawTime := Now;// 初期化のためだけにしている(MouseDownで更新される)
-  ImageList1.ClearCache();
-  ImageList1.Source.Clear;
-  ImageList1.Destination.Clear;
+  ThumbImageList.ClearCache();
+  ThumbImageList.Source.Clear;
+  ThumbImageList.Destination.Clear;
   ThumbImages.Clear;
   ThumbnailListView.Items.Clear();
   NextCountText.Text := ThumbImages.Count.ToString;
@@ -301,7 +330,7 @@ begin
   Result := True;
 end;
 
-procedure TMainForm.FinishClick(Sender: TObject);
+procedure TMainForm.FinishButtonClick(Sender: TObject);
 begin
   // timerが動いていたら何かしら描いてると思う
   if CountTimer.Enabled = True then
@@ -402,7 +431,7 @@ begin
         end
       else
         begin
-          FMX.Dialogs.ShowMessage('このアプリの動作にはストレージの権限が必要です');
+          FMX.Dialogs.ShowMessage('このアプリの動作にはストレージ権限が必要です');
         end;
     end);
 {$ENDIF}
@@ -502,13 +531,14 @@ begin
   BufferTmp.CopyFromBitmap(
     PaintImage.Bitmap);
 
-  if Layout1.Width > Layout1.Height then begin
-    PaintImage.Width := Layout1.Height;
-    PaintImage.Height := Layout1.Height;
+  if BaseLayout.Width > BaseLayout.Height then
+  begin
+    PaintImage.Width := BaseLayout.Height;
+    PaintImage.Height := BaseLayout.Height;
     PaintImage.Bitmap.SetSize(Floor(PaintImage.Height),Floor(PaintImage.Height));
   end else begin
-    PaintImage.Width := Layout1.Width;
-    PaintImage.Height := Layout1.Width;
+    PaintImage.Width := BaseLayout.Width;
+    PaintImage.Height := BaseLayout.Width;
     PaintImage.Bitmap.SetSize(Floor(PaintImage.Width),Floor(PaintImage.Width));
   end;
 
@@ -546,7 +576,7 @@ end;
 
 
 
-procedure TMainForm.StartButtonClick(Sender: TObject);
+procedure TMainForm.ResetButtonClick(Sender: TObject);
 begin
   TDialogService.MessageDialog(
     'いままでの途中経過は破棄されますがよろしいですか？',

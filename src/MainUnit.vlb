@@ -1,20 +1,8 @@
-﻿[Finish]
-Coordinates=267,10,49,58
-
-[ImageList1]
-Coordinates=158,232,77,36
-
-[Next]
-Coordinates=393,10,41,58
-
-[Layout1]
-Coordinates=444,10,60,36
-
-[CountTimer]
+﻿[CountTimer]
 Coordinates=294,56,82,36
 
 []
-Coordinates=294,1,91,36
+Coordinates=393,10,41,58
 
 [ThumbnailListView]
 Coordinates=10,10,139,278
@@ -25,4 +13,10 @@ Coordinates=159,10,98,58
 
 [PaintImage]
 Coordinates=326,10,57,58
+
+[BaseLayout]
+Coordinates=444,10,60,36
+
+[ThumbImageList]
+Coordinates=158,232,77,36
 
