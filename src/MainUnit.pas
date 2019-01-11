@@ -9,7 +9,8 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, System.ImageList, FMX.ImgList, FMX.Layouts, System.DateUtils,
   FMX.TextLayout, FMX.Gestures, FMX.MultiView, System.IOUtils, FMX.DialogService,
-  FGX.ProgressDialog
+  FGX.ProgressDialog, FMX.Edit, FMX.EditBox, FMX.ComboTrackBar, FMX.ComboEdit,
+  FMX.ListBox
 {$IFDEF ANDROID32}
   ,System.Permissions,
   Androidapi.Helpers,
@@ -45,6 +46,10 @@ type
     FinishButton: TSpeedButton;
     FinishButtonImage: TImage;
     IconImageList: TImageList;
+    StartSettingPanel: TPanel;
+    StartButton: TButton;
+    Text3: TText;
+    NormSelectBox: TComboBox;
 
     procedure FormCreate(Sender: TObject);
     procedure PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -64,6 +69,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure PaintImageResized(Sender: TObject);
     procedure ActivityDialogHide(Sender: TObject);
+    procedure StartButtonClick(Sender: TObject);
   private
     { private 宣言 }
 
@@ -95,6 +101,12 @@ type
     function SaveResultFromFile(): Boolean; // 次へ
     procedure ChangePen(IsPen: Boolean);
     procedure OnResize();
+
+    function GetNormCount(): Integer;
+
+    procedure OnMouseDown(State: TShiftState; X, Y: Single);
+    procedure OnFinish();
+    procedure UpdatePictureWriteCount();// 描いた枚数を更新
   public
     { public 宣言 }
   end;
@@ -105,6 +117,11 @@ var
 implementation
 
 {$R *.fmx}
+
+function TMainForm.GetNormCount(): Integer;
+begin
+  Result := Integer.Parse(NormSelectBox.Selected.Text);
+end;
 
 procedure TMainForm.ActivityDialogHide(Sender: TObject);
 begin
@@ -181,13 +198,28 @@ begin
   ThumbImageList.Destination.Clear;
   ThumbImages.Clear;
   ThumbnailListView.Items.Clear();
-  NextCountText.Text := ThumbImages.Count.ToString;
+  UpdatePictureWriteCount();
   IsFirstStart := True;
   FPress := False;
+
+  StartSettingPanel.Enabled := True;
+  StartSettingPanel.Visible := True;
+
   ChangePen(True);
 
 end;
 
+procedure TMainForm.UpdatePictureWriteCount();
+begin
+  if GetNormCount() > 0 then
+  begin
+    NextCountText.Text := ThumbImages.Count.ToString()
+    + ' / '
+    + NormSelectBox.Selected.Text;
+  end else begin
+    NextCountText.Text := ThumbImages.Count.ToString();
+  end;
+end;
 
 procedure TMainForm.OnNext();
 var
@@ -240,8 +272,16 @@ begin
 
   CountTimer.Enabled := false;
 
-  NextCountText.Text := ThumbImages.Count.ToString();
+  UpdatePictureWriteCount();
+
   StartDrawTime := Now;
+
+  // ノルマが設定されている場合は迎えた時点で自動終了
+  if (GetNormCount() > 0) and (ThumbImages.Count = GetNormCount()) then
+  begin
+    OnFinish();
+    Exit;
+  end;
 
   ChangePen(True);
 end;
@@ -330,7 +370,15 @@ begin
   Result := True;
 end;
 
-procedure TMainForm.FinishButtonClick(Sender: TObject);
+procedure TMainForm.StartButtonClick(Sender: TObject);
+begin
+  //Panelを非表示にしたら開始とする
+  StartSettingPanel.Enabled := False;
+  StartSettingPanel.Visible := False;
+  UpdatePictureWriteCount();
+end;
+
+procedure TMainForm.OnFinish();
 begin
   // timerが動いていたら何かしら描いてると思う
   if CountTimer.Enabled = True then
@@ -384,6 +432,11 @@ begin
     SaveProcessingThread.WaitFor;
   end;
 {$ENDIF}
+end;
+
+procedure TMainForm.FinishButtonClick(Sender: TObject);
+begin
+  OnFinish();
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -441,10 +494,15 @@ begin
   ResetDrawingSetting();
 end;
 
-procedure TMainForm.PaintImageMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Single);
+procedure TMainForm.OnMouseDown(State: TShiftState; X, Y: Single);
 begin
-  if not ((ssLeft in Shift) or (ssTouch in Shift)) then begin
+  if StartSettingPanel.Enabled = True then
+  begin
+    // まだ開始してない
+    Exit;
+  end;
+
+  if not ((ssLeft in State) or (ssTouch in State)) then begin
     Exit;
   end;
   FDownPos := TPointF.Create(X,Y);
@@ -464,6 +522,12 @@ begin
   end;
 end;
 
+procedure TMainForm.PaintImageMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  OnMouseDown(Shift, X, Y);
+end;
+
 procedure TMainForm.PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Single);
 var
@@ -481,8 +545,7 @@ begin
   if FPress = False then
   begin
     // ここを通るってことはDownが正しくとれてない。悲しい。
-    FPress := True;
-    FDownPos := Point;
+    OnMouseDown(Shift, X, Y);
     Exit;
   end;
 
