@@ -1,0 +1,19 @@
+unit AppDefine;
+
+interface
+
+
+type
+  TAppDefine = class
+  private
+    { Private éŒ¾ }
+  public
+    { Public éŒ¾ }
+    const TwitterConsumerKey = string('');
+    const TwitterConsumerSecretKey = string('');
+  end;
+
+implementation
+
+
+end.
