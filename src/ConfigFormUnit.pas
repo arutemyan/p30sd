@@ -12,25 +12,33 @@ uses
   Data.Bind.EngExt,
   IPPeerClient
 {$IFDEF ANDROID32}
-  ,System.Permissions,
-  Androidapi.Helpers,
-  Androidapi.JNI.App,
-  Androidapi.JNI.OS
+  ,System.Permissions
+  ,Androidapi.Helpers
+  ,Androidapi.JNI.App
+  ,Androidapi.JNI.OS
 {$ENDIF}
-  {$IFDEF MSWINDOWS}
-  ,REST.Authenticator.OAuth.WebForm.Win
-  {$ELSE}
-  ,REST.Authenticator.OAuth.WebForm.FMX
-  {$ENDIF}
+{$IFDEF MSWINDOWS}
+  ,REST.Authenticator.OAuth.WebForm.Win, FMX.TabControl
+{$ELSE}
+  ,REST.Authenticator.OAuth.WebForm.FMX, FMX.TabControl
+{$ENDIF}
 ;
 type
   TConfigForm = class(TForm)
-    TwitterGetRequestToken: TButton;
-    TwitterAuth: TButton;
+    TwitterGetRequestTokenButton: TButton;
+    TwitterAuthButton: TButton;
     TwitterPINCode: TEdit;
-    Button1: TButton;
-    procedure TwitterAuthClick(Sender: TObject);
-    procedure TwitterGetRequestTokenClick(Sender: TObject);
+    MainTabControl: TTabControl;
+    TwitterTab: TTabItem;
+    Label1: TLabel;
+    TwitterAuthDeleteButton: TButton;
+    procedure TwitterAuthButtonClick(Sender: TObject);
+    procedure TwitterGetRequestTokenButtonClick(Sender: TObject);
+    procedure TwitterAuthDeleteButtonClick(Sender: TObject);
+
+    { twitter の認証状態を見てボタンのアクティブ状態を切り替える }
+    procedure UpdateTwitterButtonGroup();
+    procedure FormCreate(Sender: TObject);
   private
     { private 宣言 }
 
@@ -45,16 +53,40 @@ var
 implementation
 
 {$R *.fmx}
+{$R *.LgXhdpiTb.fmx ANDROID}
+{$R *.Windows.fmx MSWINDOWS}
 
 uses
   MainUnit;
 
-procedure TConfigForm.TwitterGetRequestTokenClick(Sender: TObject);
+procedure TConfigForm.UpdateTwitterButtonGroup();
+var
+  IsAuth: boolean;
+begin
+  IsAuth := False;
+  if ((MainForm.ConfigManager.AccessToken<>'') and
+    (MainForm.ConfigManager.AccessTokenSecret<>'')) then
+  begin
+    IsAuth := True;
+  end;
+
+  TwitterPINCode.Enabled := not IsAuth;
+  self.TwitterAuthButton.Enabled := not IsAuth;
+  self.TwitterGetRequestTokenButton.Enabled := not IsAuth;
+  self.TwitterAuthDeleteButton.Enabled := IsAuth;
+end;
+
+procedure TConfigForm.TwitterGetRequestTokenButtonClick(Sender: TObject);
 begin
   ExecGetTwitterRequestToken();
 end;
 
-procedure TConfigForm.TwitterAuthClick(Sender: TObject);
+procedure TConfigForm.FormCreate(Sender: TObject);
+begin
+  UpdateTwitterButtonGroup();
+end;
+
+procedure TConfigForm.TwitterAuthButtonClick(Sender: TObject);
 var
   LToken: string;
 begin
@@ -104,11 +136,20 @@ begin
     OAuth1Authenticator.VerifierPin := '';
 
     //SendTwitter();
+    UpdateTwitterButtonGroup();
   end;
 
 end;
 
 
+
+procedure TConfigForm.TwitterAuthDeleteButtonClick(Sender: TObject);
+begin
+  MainForm.ConfigManager.AccessToken := '';
+  MainForm.ConfigManager.AccessTokenSecret := '';
+  MainForm.ConfigManager.Save();
+  UpdateTwitterButtonGroup();
+end;
 
 procedure TConfigForm.ExecGetTwitterRequestToken();
 var
@@ -156,9 +197,9 @@ begin
 
     wv := Tfrm_OAuthWebForm.Create(self);
     try
-      wv.ShowModalWithURL(LURL);
+      wv.ShowWithURL(LURL);
     finally
-      wv.Release;
+      //wv.Release;
     end;
   end;
 
