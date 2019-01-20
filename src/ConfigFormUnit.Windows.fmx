@@ -1,0 +1,16 @@
+inherited ConfigForm_Windows: TConfigForm_Windows
+  DesignerMasterStyle = 3
+  inherited MainTabControl: TTabControl
+    Sizes = (
+      598s
+      428s)
+    inherited TwitterTab: TTabItem
+      Size.Width = 87.000000000000000000
+      ExplicitSize.cx = 598.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      inherited TwitterPINCode: TEdit
+        Size.Height = 25.000000000000000000
+      end
+    end
+  end
+end
