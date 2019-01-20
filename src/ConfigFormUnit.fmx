@@ -1,0 +1,40 @@
+object ConfigForm: TConfigForm
+  Left = 0
+  Top = 0
+  Caption = 'ConfigForm'
+  ClientHeight = 515
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object TwitterGetRequestToken: TButton
+    Position.X = 240.000000000000000000
+    Position.Y = 131.000000000000000000
+    Size.Width = 192.000000000000000000
+    Size.Height = 46.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'TwitterGetRequestToken'
+    OnClick = TwitterGetRequestTokenClick
+  end
+  object TwitterAuth: TButton
+    Position.X = 105.000000000000000000
+    Position.Y = 203.000000000000000000
+    TabOrder = 1
+    Text = 'TwitterAuth'
+    OnClick = TwitterAuthClick
+  end
+  object TwitterPINCode: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 0
+    Position.X = 181.000000000000000000
+    Position.Y = 259.000000000000000000
+  end
+  object Button1: TButton
+    Position.X = 544.000000000000000000
+    Position.Y = 384.000000000000000000
+    TabOrder = 3
+    Text = 'Button1'
+  end
+end

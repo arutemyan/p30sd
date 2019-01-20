@@ -10,13 +10,23 @@ uses
   FMX.ListView, System.ImageList, FMX.ImgList, FMX.Layouts, System.DateUtils,
   FMX.TextLayout, FMX.Gestures, FMX.MultiView, System.IOUtils, FMX.DialogService,
   FGX.ProgressDialog, FMX.Edit, FMX.EditBox, FMX.ComboTrackBar, FMX.ComboEdit,
-  FMX.ListBox
+  FMX.ListBox, FMX.WebBrowser, Data.Bind.Components, Data.Bind.ObjectScope,
+  REST.Client, REST.Authenticator.OAuth, System.NetEncoding,
+  REST.Utils,REST.Types,REST.Response.Adapter,REST.Authenticator.Simple,
+  REST.Authenticator.Basic,AppDefine, ConfigManager,
+  Data.Bind.EngExt,
+  IPPeerClient
 {$IFDEF ANDROID32}
   ,System.Permissions,
   Androidapi.Helpers,
   Androidapi.JNI.App,
   Androidapi.JNI.OS
 {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  ,REST.Authenticator.OAuth.WebForm.Win
+  {$ELSE}
+  ,REST.Authenticator.OAuth.WebForm.FMX
+  {$ENDIF}
 ;
 
 type
@@ -50,6 +60,11 @@ type
     StartButton: TButton;
     Text3: TText;
     NormSelectBox: TComboBox;
+    RESTRequest: TRESTRequest;
+    RESTResponse: TRESTResponse;
+    OAuth1Authenticator: TOAuth1Authenticator;
+    RESTClient: TRESTClient;
+    OpenConfigButton: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -70,6 +85,7 @@ type
     procedure PaintImageResized(Sender: TObject);
     procedure ActivityDialogHide(Sender: TObject);
     procedure StartButtonClick(Sender: TObject);
+    procedure OpenConfigButtonClick(Sender: TObject);
   private
     { private 宣言 }
 
@@ -83,18 +99,15 @@ type
     // 一番最初のときはtrue. 次にMouseDownよばれたらFalse
     IsFirstStart: Boolean;
 
-    const ThumbSize = Integer(512);
-    const ResultImageSize = Integer(4096);
 
-    // 一枚に収まるサムネの数
-    const ThumbnailMaxCountInImage = Integer(
-      Trunc(ResultImageSize*ResultImageSize / (ThumbSize*ThumbSize))
-    );
+
+    const ThumbPixelSize = Integer(512);
 
     // 一枚の画像の横か縦に入るイメージの数
     // 並べるときに使用する
-    const ThumbnailResultImageItemMax =
-      Integer(Trunc(ResultImageSize / ThumbSize));
+    const ThumbnailResulImgLineItemMax = 8;
+
+    procedure PostTwitter(ResultFileName: string);
 
     procedure ResetDrawingSetting();
     procedure OnNext();
@@ -109,6 +122,7 @@ type
     procedure UpdatePictureWriteCount();// 描いた枚数を更新
   public
     { public 宣言 }
+    ConfigManager: TConfigManager;
   end;
 
 var
@@ -117,6 +131,8 @@ var
 implementation
 
 {$R *.fmx}
+
+uses ConfigFormUnit;
 
 function TMainForm.GetNormCount(): Integer;
 begin
@@ -234,12 +250,12 @@ begin
 {$ENDIF}
   with Bmp do
   begin;
-    SetSize(ThumbSize,ThumbSize);
+    SetSize(ThumbPixelSize,ThumbPixelSize);
     if Canvas.BeginScene then
       try
         Canvas.DrawBitmap(PaintImage.Bitmap,
           TRectF.Create(0,0,PaintImage.Bitmap.Width, PaintImage.Bitmap.Height),
-          TRectF.Create(0,0,ThumbSize,ThumbSize), 1, False);
+          TRectF.Create(0,0,ThumbPixelSize,ThumbPixelSize), 1, False);
       finally
         Canvas.EndScene;
       end;
@@ -249,7 +265,7 @@ begin
     Bmp.Canvas.BeginScene;
     Layout.BeginUpdate;
     Layout.TopLeft := TPointF.Create(0, 0);
-    Layout.MaxSize := TPointF.Create(ThumbSize,ThumbSize);
+    Layout.MaxSize := TPointF.Create(ThumbPixelSize,ThumbPixelSize);
     Layout.Font.Size := 20;
     Layout.Color := TAlphaColorRec.Black;
     Layout.WordWrap := False;
@@ -290,7 +306,7 @@ end;
 function TMainForm.SaveResultFromFile(): Boolean;
 var
   Bmp: TBitmap;
-  I:   Integer;
+  I: Integer;
   OldIdx: Integer;
   ImgCount: Integer;
   LineBrush: TStrokeBrush;
@@ -298,34 +314,54 @@ var
   BaseFileName: string;
   DateTimeString: string;
   BaseDir: string;
+  RealThumbImgLineItemMax: Integer; // 横＆縦のイメージの数。16枚なら4*4で4が入る。
+  RealThumbImageItemTotal: Integer;// 横＆縦のイメージの数。16枚なら16が入る。
+  ResultImageLinePixelSize: Integer;
 begin
-  SaveFunc := procedure
+  // 上限を超えていたら上限に
+  RealThumbImgLineItemMax := Trunc(Sqrt(Extended(ThumbImages.Count)) + 0.5);
+  if (RealThumbImgLineItemMax > ThumbnailResulImgLineItemMax) then
+      RealThumbImgLineItemMax := ThumbnailResulImgLineItemMax;
+
+  // 一枚にぶちこむイメージの数。
+  // ThumbnailResulImgLineItemMax^2を超えることはない。
+  RealThumbImageItemTotal := RealThumbImgLineItemMax*RealThumbImgLineItemMax;
+  // キャンバスサイズ（横＆縦）
+  ResultImageLinePixelSize := RealThumbImgLineItemMax * ThumbPixelSize;
+
+  SaveFunc := procedure()
     var
       II: Integer;
+      SaveFileName: string;
     begin
       // 線を描画
       with Bmp.Canvas do
       begin
         BeginScene();
         try
-          for II := 0 to ThumbnailResultImageItemMax-1 do
+          for II := 0 to RealThumbImgLineItemMax-1 do
           begin
             DrawLine(
-              TpointF.Create((II * ThumbSize), 0),
-              TpointF.Create((II * ThumbSize), ResultImageSize),
+              TpointF.Create((II * ThumbPixelSize), 0),
+              TpointF.Create((II * ThumbPixelSize), ResultImageLinePixelSize),
               1,
               LineBrush);
             DrawLine(
-              TpointF.Create(0, (II * ThumbSize)),
-              TpointF.Create(ResultImageSize, (II * ThumbSize)),
+              TpointF.Create(0, (II * ThumbPixelSize)),
+              TpointF.Create(ResultImageLinePixelSize, (II * ThumbPixelSize)),
               1,
               LineBrush);
           end;
         finally
           EndScene;
         end;
-        Bmp.SaveToFile(
-          BaseFileName + (OldIdx+1).ToString() + '.png');
+        SaveFileName:= BaseFileName + (OldIdx+1).ToString() + '.png';
+        Bmp.SaveToFile(SaveFileName);
+        if ThumbImages.Count >= 10 then
+        begin
+          // Twitter 投稿
+          PostTwitter(SaveFileName);
+        end;
       end;
     end;
 
@@ -346,11 +382,11 @@ begin
   OldIdx := 0;
   ImgCount := 0;
   Bmp := TBitmap.Create();
-  Bmp.SetSize(ResultImageSize,ResultImageSize);
+  Bmp.SetSize(ResultImageLinePixelSize,ResultImageLinePixelSize);
   Bmp.Clear(TAlphaColorRec.White);
   for I := 0 to ThumbImages.Count-1 do
   begin
-    if Trunc(I / ThumbnailMaxCountInImage) <> OldIdx then
+    if Trunc(I / RealThumbImageItemTotal) <> OldIdx then
     begin
       SaveFunc();
       Bmp.Clear(TAlphaColorRec.White);
@@ -360,8 +396,8 @@ begin
     Bmp.CopyFromBitmap(
       ThumbImages[I],
       TRect.Create(0,0,ThumbImages[I].Width,ThumbImages[I].Height),
-      (ImgCount mod ThumbnailResultImageItemMax) * ThumbSize,
-      (ImgCount div ThumbnailResultImageItemMax) * ThumbSize);
+      (ImgCount mod RealThumbImgLineItemMax) * ThumbPixelSize,
+      (ImgCount div RealThumbImgLineItemMax) * ThumbPixelSize);
     Inc(ImgCount);
     if I = (ThumbImages.Count-1) then begin
        SaveFunc();
@@ -377,6 +413,7 @@ begin
   StartSettingPanel.Visible := False;
   UpdatePictureWriteCount();
 end;
+
 
 procedure TMainForm.OnFinish();
 begin
@@ -471,6 +508,8 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  ConfigManager := TConfigManager.Create();
+  ConfigManager.Load();
 {$IFDEF ANDROID32}
   PermissionsService.RequestPermissions(
     [
@@ -627,6 +666,11 @@ begin
 
 end;
 
+procedure TMainForm.OpenConfigButtonClick(Sender: TObject);
+begin
+  ConfigForm.Show;
+end;
+
 procedure TMainForm.PaintImageResized(Sender: TObject);
 begin
   OnResize;
@@ -664,5 +708,83 @@ begin
   ChangePen(True);
 end;
 
+
+procedure TMainForm.PostTwitter(ResultFileName: string);
+var
+ MediaIds: string;
+ SendFile: TMemoryStream;
+ Encoding: TNetEncoding;
+ Bytes: TBytes;
+ TotalSec: Int64;
+ TimeString: string;
+begin
+  if (ConfigManager.AccessToken = '')
+    or (ConfigManager.AccessTokenSecret = '') then
+  begin
+    Exit;
+  end;
+
+  Encoding := TNetEncoding.Create();
+  with MainForm do
+  begin
+    SendFile := TMemoryStream.Create;
+    try
+      SendFile.LoadFromFile(ResultFileName);
+      SendFile.Position := 0;
+      SetLength(Bytes, SendFile.Size);
+      SendFile.Read(Bytes, SendFile.Size);
+
+      OAuth1Authenticator.RequestToken := '';
+      OAuth1Authenticator.RequestTokenSecret := '';
+      OAuth1Authenticator.VerifierPin := '';
+
+      OAuth1Authenticator.ConsumerKey := TAppDefine.TwitterConsumerKey;
+      OAuth1Authenticator.ConsumerSecret := TAppDefine.TwitterConsumerSecretKey;
+
+      OAuth1Authenticator.AccessToken := ConfigManager.AccessToken;
+      OAuth1Authenticator.AccessTokenSecret := ConfigManager.AccessTokenSecret;
+
+      RESTClient.BaseURL := 'https://api.twitter.com';
+      RESTClient.Authenticator := OAuth1Authenticator;
+    {
+      RESTRequest.Resource := '1.1/statuses/update.json';
+      RESTRequest.Method := TRESTRequestMethod.rmPOST;
+      RESTRequest.Params.AddItem('status', 'test', TRESTRequestParameterKind.pkGETorPOST);
+    }
+      RESTClient.BaseURL := 'https://upload.twitter.com';
+      RESTRequest.Resource := '1.1/media/upload.json';
+      RESTRequest.Method := TRESTRequestMethod.rmPOST;
+      RESTRequest.Params.Clear;
+      RESTRequest.Params.AddItem('media_data', Encoding.Base64.EncodeBytesToString(Bytes));
+
+
+      RESTRequest.Execute;
+
+    TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
+    TimeString := string.Format(
+      '30秒ドローイングを%.2d分%.2d秒やったよ！',
+      [
+        Floor(TotalSec/60000),
+        (Floor(TotalSec/1000) mod 60)
+      ]
+    );
+
+      RESTResponse.GetSimpleValue('media_id_string', MediaIds);
+      if (MediaIds = '') then
+        Exit;
+
+      RESTClient.BaseURL := 'https://api.twitter.com';
+      RESTRequest.Resource := '1.1/statuses/update.json';
+      RESTRequest.Method := TRESTRequestMethod.rmPOST;
+      RESTRequest.Params.Clear;
+      RESTRequest.Params.AddItem('status', TimeString + ' #p30sd', TRESTRequestParameterKind.pkGETorPOST);
+      RESTRequest.Params.AddItem('media_ids', MediaIds);
+
+      RESTRequest.Execute;
+    finally
+      SendFile.Free;
+    end;
+  end;
+end;
 
 end.
