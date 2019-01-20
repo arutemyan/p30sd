@@ -4,6 +4,7 @@ src/p30sd.identcache
 src/p30sd.stat
 src/Android/*
 src/Win32/*
+src/__history/*
 *.dcu
 *.exe
 *.o
