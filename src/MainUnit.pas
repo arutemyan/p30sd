@@ -1,4 +1,4 @@
-unit MainUnit;
+ï»¿unit MainUnit;
 
 interface
 
@@ -87,31 +87,31 @@ type
     procedure StartButtonClick(Sender: TObject);
     procedure OpenConfigButtonClick(Sender: TObject);
   private
-    { private éŒ¾ }
+    { private å®£è¨€ }
 
     FDownPos: TPointF;
-    FPress: Boolean; // Android ‚â’[––‚¾‚ÆDown‚ğ‚¤‚Ü‚­E‚Á‚Ä‚­‚ê‚È‚¢‚Ì‚ÅB
+    FPress: Boolean; // Android ã‚„ç«¯æœ«ã ã¨Downã‚’ã†ã¾ãæ‹¾ã£ã¦ãã‚Œãªã„ã®ã§ã€‚
     ThumbImages: TList<TBitmap>;
     StartDrawTime: TDateTime;
     InitialDrawTime: TDateTime;
     SaveProcessingThread: TThread;
 
-    // ˆê”ÔÅ‰‚Ì‚Æ‚«‚Ítrue. Ÿ‚ÉMouseDown‚æ‚Î‚ê‚½‚çFalse
+    // ä¸€ç•ªæœ€åˆã®ã¨ãã¯true. æ¬¡ã«MouseDownã‚ˆã°ã‚ŒãŸã‚‰False
     IsFirstStart: Boolean;
 
 
 
     const ThumbPixelSize = Integer(512);
 
-    // ˆê–‡‚Ì‰æ‘œ‚Ì‰¡‚©c‚É“ü‚éƒCƒ[ƒW‚Ì”
-    // •À‚×‚é‚Æ‚«‚Ég—p‚·‚é
+    // ä¸€æšã®ç”»åƒã®æ¨ªã‹ç¸¦ã«å…¥ã‚‹ã‚¤ãƒ¡ãƒ¼ã‚¸ã®æ•°
+    // ä¸¦ã¹ã‚‹ã¨ãã«ä½¿ç”¨ã™ã‚‹
     const ThumbnailResulImgLineItemMax = 8;
 
     procedure PostTwitter(ResultFileName: string);
 
     procedure ResetDrawingSetting();
     procedure OnNext();
-    function SaveResultFromFile(): Boolean; // Ÿ‚Ö
+    function SaveResultFromFile(): Boolean; // æ¬¡ã¸
     procedure ChangePen(IsPen: Boolean);
     procedure OnResize();
 
@@ -119,9 +119,9 @@ type
 
     procedure OnMouseDown(State: TShiftState; X, Y: Single);
     procedure OnFinish();
-    procedure UpdatePictureWriteCount();// •`‚¢‚½–‡”‚ğXV
+    procedure UpdatePictureWriteCount();// æã„ãŸæšæ•°ã‚’æ›´æ–°
   public
-    { public éŒ¾ }
+    { public å®£è¨€ }
     ConfigManager: TConfigManager;
   end;
 
@@ -208,7 +208,7 @@ begin
   self.NextCountText.Text := '0';
 
   StartDrawTime := Now;
-  InitialDrawTime := Now;// ‰Šú‰»‚Ì‚½‚ß‚¾‚¯‚É‚µ‚Ä‚¢‚é(MouseDown‚ÅXV‚³‚ê‚é)
+  InitialDrawTime := Now;// åˆæœŸåŒ–ã®ãŸã‚ã ã‘ã«ã—ã¦ã„ã‚‹(MouseDownã§æ›´æ–°ã•ã‚Œã‚‹)
   ThumbImageList.ClearCache();
   ThumbImageList.Source.Clear;
   ThumbImageList.Destination.Clear;
@@ -245,7 +245,7 @@ var
 begin
   Bmp := TBitmap.Create();
 {$IFNDEF ANDROID32}
-  // Android‚¾‚ÆTrue‚Ìê‡‚µ‚ñ‚Å‚µ‚Ü‚¤B
+  // Androidã ã¨Trueã®å ´åˆã—ã‚“ã§ã—ã¾ã†ã€‚
   Bmp.Canvas.Blending := True;
 {$ENDIF}
   with Bmp do
@@ -292,7 +292,7 @@ begin
 
   StartDrawTime := Now;
 
-  // ƒmƒ‹ƒ}‚ªİ’è‚³‚ê‚Ä‚¢‚éê‡‚ÍŒ}‚¦‚½“_‚Å©“®I—¹
+  // ãƒãƒ«ãƒãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã¯è¿ãˆãŸæ™‚ç‚¹ã§è‡ªå‹•çµ‚äº†
   if (GetNormCount() > 0) and (ThumbImages.Count = GetNormCount()) then
   begin
     OnFinish();
@@ -314,8 +314,8 @@ var
   BaseFileName: string;
   DateTimeString: string;
   BaseDir: string;
-  RealThumbImgLineItemMax: Integer; // ‰¡•c‚ÌƒCƒ[ƒW‚Ì”B16–‡‚È‚ç4*4‚Å4‚ª“ü‚éB
-  RealThumbImageItemTotal: Integer;// ‰¡•c‚ÌƒCƒ[ƒW‚Ì”B16–‡‚È‚ç16‚ª“ü‚éB
+  RealThumbImgLineItemMax: Integer; // æ¨ªï¼†ç¸¦ã®ã‚¤ãƒ¡ãƒ¼ã‚¸ã®æ•°ã€‚16æšãªã‚‰4*4ã§4ãŒå…¥ã‚‹ã€‚
+  RealThumbImageItemTotal: Integer;// æ¨ªï¼†ç¸¦ã®ã‚¤ãƒ¡ãƒ¼ã‚¸ã®æ•°ã€‚16æšãªã‚‰16ãŒå…¥ã‚‹ã€‚
   ResultImageLinePixelSize: Integer;
   ImageLineFloat: Extended;
 begin
@@ -323,16 +323,16 @@ begin
   RealThumbImgLineItemMax := Trunc(ImageLineFloat);
    If Frac(ImageLineFloat) <> 0 Then
    begin
-     //Ø‚èã‚°‘Î‰
+     //åˆ‡ã‚Šä¸Šã’å¯¾å¿œ
      RealThumbImgLineItemMax := RealThumbImgLineItemMax + 1;
    end;
   if (RealThumbImgLineItemMax > ThumbnailResulImgLineItemMax) then
       RealThumbImgLineItemMax := ThumbnailResulImgLineItemMax;
 
-  // ˆê–‡‚É‚Ô‚¿‚±‚ŞƒCƒ[ƒW‚Ì”B
-  // ThumbnailResulImgLineItemMax^2‚ğ’´‚¦‚é‚±‚Æ‚Í‚È‚¢B
+  // ä¸€æšã«ã¶ã¡ã“ã‚€ã‚¤ãƒ¡ãƒ¼ã‚¸ã®æ•°ã€‚
+  // ThumbnailResulImgLineItemMax^2ã‚’è¶…ãˆã‚‹ã“ã¨ã¯ãªã„ã€‚
   RealThumbImageItemTotal := RealThumbImgLineItemMax*RealThumbImgLineItemMax;
-  // ƒLƒƒƒ“ƒoƒXƒTƒCƒYi‰¡•cj
+  // ã‚­ãƒ£ãƒ³ãƒã‚¹ã‚µã‚¤ã‚ºï¼ˆæ¨ªï¼†ç¸¦ï¼‰
   ResultImageLinePixelSize := RealThumbImgLineItemMax * ThumbPixelSize;
 
   SaveFunc := procedure()
@@ -340,7 +340,7 @@ begin
       II: Integer;
       SaveFileName: string;
     begin
-      // ü‚ğ•`‰æ
+      // ç·šã‚’æç”»
       with Bmp.Canvas do
       begin
         BeginScene();
@@ -365,14 +365,14 @@ begin
         Bmp.SaveToFile(SaveFileName);
         if ThumbImages.Count >= 10 then
         begin
-          // Twitter “Še
+          // Twitter æŠ•ç¨¿
           PostTwitter(SaveFileName);
         end;
       end;
     end;
 
   if ThumbImages.Count = 0 then begin
-    Result := True; // •Û‘¶‚·‚é‚à‚Ì‚ª‚È‚¢‚Æ‚«‚à¬Œ÷‚Å‚¢‚¢‚Å‚µ‚å‚¤
+    Result := True; // ä¿å­˜ã™ã‚‹ã‚‚ã®ãŒãªã„ã¨ãã‚‚æˆåŠŸã§ã„ã„ã§ã—ã‚‡ã†
     Exit();
   end;
 
@@ -414,7 +414,7 @@ end;
 
 procedure TMainForm.StartButtonClick(Sender: TObject);
 begin
-  //Panel‚ğ”ñ•\¦‚É‚µ‚½‚çŠJn‚Æ‚·‚é
+  //Panelã‚’éè¡¨ç¤ºã«ã—ãŸã‚‰é–‹å§‹ã¨ã™ã‚‹
   StartSettingPanel.Enabled := False;
   StartSettingPanel.Visible := False;
   UpdatePictureWriteCount();
@@ -423,14 +423,14 @@ end;
 
 procedure TMainForm.OnFinish();
 begin
-  // timer‚ª“®‚¢‚Ä‚¢‚½‚ç‰½‚©‚µ‚ç•`‚¢‚Ä‚é‚Æv‚¤
+  // timerãŒå‹•ã„ã¦ã„ãŸã‚‰ä½•ã‹ã—ã‚‰æã„ã¦ã‚‹ã¨æ€ã†
   if CountTimer.Enabled = True then
   begin
     OnNext();
   end;
 
   if ThumbImages.Count = 0 then begin
-    FMX.Dialogs.ShowMessage('‚Ü‚¾ŠJn‚µ‚Ä‚¢‚È‚¢‚©0–‡‚Å‚·');
+    FMX.Dialogs.ShowMessage('ã¾ã é–‹å§‹ã—ã¦ã„ãªã„ã‹0æšã§ã™');
     Exit;
   end;
   if not ActivityDialog.IsShown then
@@ -443,15 +443,15 @@ begin
               ActivityDialog.Show;
             end);
 
-          // ƒ_ƒCƒAƒƒO‚ğo‚µ‚½‚¢‚Ì‚ÅA•\¦‚³‚ê‚é‚½‚ß‚¾‚¯‚Ìsleep
-          // ‚Ä‚«‚Æ[B
+          // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã—ãŸã„ã®ã§ã€è¡¨ç¤ºã•ã‚Œã‚‹ãŸã‚ã ã‘ã®sleep
+          // ã¦ãã¨ãƒ¼ã€‚
           Sleep(100);
 
           TThread.Synchronize(nil, procedure
             begin
               if SaveResultFromFile() = False then begin
                 ActivityDialog.Hide;
-                FMX.Dialogs.ShowMessage('•Û‘¶‚É¸”s‚µ‚Ü‚µ‚½');
+                FMX.Dialogs.ShowMessage('ä¿å­˜ã«å¤±æ•—ã—ã¾ã—ãŸ');
                 Exit;
               end;
               ResetDrawingSetting();
@@ -487,7 +487,7 @@ var
   ModalResult: Boolean;
 begin
   TDialogService.MessageDialog(
-    'I—¹‚µ‚Ä‚à‚æ‚ë‚µ‚¢‚Å‚·‚©H',
+    'çµ‚äº†ã—ã¦ã‚‚ã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ',
     TMsgDlgType.mtConfirmation,
     mbYesNo, TMsgDlgBtn.mbNo, 0,
     procedure(const AResult: TModalResult)
@@ -495,9 +495,9 @@ begin
         if (AResult = mrYes) then
         begin
           ModalResult := true;
-          // ‚Í‚¢‚Ì‚Æ‚«‚Í•Û‘¶ˆ—‚ğ‚æ‚ñ‚Å‚¨‚­‚©
+          // ã¯ã„ã®ã¨ãã¯ä¿å­˜å‡¦ç†ã‚’ã‚ˆã‚“ã§ãŠãã‹
 
-          // timer‚ª“®‚¢‚Ä‚¢‚½‚ç‰½‚©‚µ‚ç•`‚¢‚Ä‚é‚Æv‚¤
+          // timerãŒå‹•ã„ã¦ã„ãŸã‚‰ä½•ã‹ã—ã‚‰æã„ã¦ã‚‹ã¨æ€ã†
           if CountTimer.Enabled = True then
           begin
             OnNext();
@@ -529,7 +529,7 @@ begin
         end
       else
         begin
-          FMX.Dialogs.ShowMessage('‚±‚ÌƒAƒvƒŠ‚Ì“®ì‚É‚ÍƒXƒgƒŒ[ƒWŒ ŒÀ‚ª•K—v‚Å‚·');
+          FMX.Dialogs.ShowMessage('ã“ã®ã‚¢ãƒ—ãƒªã®å‹•ä½œã«ã¯ã‚¹ãƒˆãƒ¬ãƒ¼ã‚¸æ¨©é™ãŒå¿…è¦ã§ã™');
         end;
     end);
 {$ENDIF}
@@ -543,7 +543,7 @@ procedure TMainForm.OnMouseDown(State: TShiftState; X, Y: Single);
 begin
   if StartSettingPanel.Enabled = True then
   begin
-    // ‚Ü‚¾ŠJn‚µ‚Ä‚È‚¢
+    // ã¾ã é–‹å§‹ã—ã¦ãªã„
     Exit;
   end;
 
@@ -555,7 +555,7 @@ begin
 
   if CountTimer.Enabled = false then
   begin
-    // TotalTime‚Ì’ K‚ğ‚ ‚í‚¹‚éEEEB
+    // TotalTimeã®å¸³å°»ã‚’ã‚ã‚ã›ã‚‹ãƒ»ãƒ»ãƒ»ã€‚
     InitialDrawTime := self.InitialDrawTime + (Now - StartDrawTime);
     StartDrawTime := Now;
     CountTimer.Enabled := true;
@@ -589,7 +589,7 @@ begin
 
   if FPress = False then
   begin
-    // ‚±‚±‚ğ’Ê‚é‚Á‚Ä‚±‚Æ‚ÍDown‚ª³‚µ‚­‚Æ‚ê‚Ä‚È‚¢B”ß‚µ‚¢B
+    // ã“ã“ã‚’é€šã‚‹ã£ã¦ã“ã¨ã¯DownãŒæ­£ã—ãã¨ã‚Œã¦ãªã„ã€‚æ‚²ã—ã„ã€‚
     OnMouseDown(Shift, X, Y);
     Exit;
   end;
@@ -599,8 +599,8 @@ begin
   begin
     ImageCanvas.BeginScene;
     try
-      // Enabled‚ªFalse‚Ì‚Æ‚«‚É—LŒø‚È‚Ì‚Å’ˆÓ
-      // ‚Ç‚¤‚©‚Æ‚¨‚à‚¤‚ª‚±‚ê‚ÅB
+      // EnabledãŒFalseã®ã¨ãã«æœ‰åŠ¹ãªã®ã§æ³¨æ„
+      // ã©ã†ã‹ã¨ãŠã‚‚ã†ãŒã“ã‚Œã§ã€‚
       if UsePenButton.Enabled = False then
       begin
         Stroke.Thickness := 1;
@@ -692,7 +692,7 @@ end;
 procedure TMainForm.ResetButtonClick(Sender: TObject);
 begin
   TDialogService.MessageDialog(
-    '‚¢‚Ü‚Ü‚Å‚Ì“r’†Œo‰ß‚Í”jŠü‚³‚ê‚Ü‚·‚ª‚æ‚ë‚µ‚¢‚Å‚·‚©H',
+    'ã„ã¾ã¾ã§ã®é€”ä¸­çµŒéã¯ç ´æ£„ã•ã‚Œã¾ã™ãŒã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ',
     TMsgDlgType.mtConfirmation,
     mbYesNo, TMsgDlgBtn.mbNo, 0,
     procedure(const AResult: TModalResult)
@@ -768,7 +768,7 @@ begin
 
     TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
     TimeString := string.Format(
-      '30•bƒhƒ[ƒCƒ“ƒO‚ğ%.2d•ª%.2d•b‚â‚Á‚½‚æI',
+      '30ç§’ãƒ‰ãƒ­ãƒ¼ã‚¤ãƒ³ã‚°ã‚’%.2dåˆ†%.2dç§’ã‚„ã£ãŸã‚ˆï¼',
       [
         Floor(TotalSec/60000),
         (Floor(TotalSec/1000) mod 60)

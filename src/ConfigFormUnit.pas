@@ -1,4 +1,4 @@
-unit ConfigFormUnit;
+ï»¿unit ConfigFormUnit;
 
 interface
 
@@ -36,15 +36,15 @@ type
     procedure TwitterGetRequestTokenButtonClick(Sender: TObject);
     procedure TwitterAuthDeleteButtonClick(Sender: TObject);
 
-    { twitter ‚Ì”FØó‘Ô‚ğŒ©‚Äƒ{ƒ^ƒ“‚ÌƒAƒNƒeƒBƒuó‘Ô‚ğØ‚è‘Ö‚¦‚é }
+    { twitter ã®èªè¨¼çŠ¶æ…‹ã‚’è¦‹ã¦ãƒœã‚¿ãƒ³ã®ã‚¢ã‚¯ãƒ†ã‚£ãƒ–çŠ¶æ…‹ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ }
     procedure UpdateTwitterButtonGroup();
     procedure FormCreate(Sender: TObject);
   private
-    { private éŒ¾ }
+    { private å®£è¨€ }
 
     procedure ExecGetTwitterRequestToken();
   public
-    { public éŒ¾ }
+    { public å®£è¨€ }
   end;
 
 var

@@ -1,4 +1,4 @@
-unit ConfigManager;
+﻿unit ConfigManager;
 
 interface
 
@@ -9,7 +9,7 @@ type
   TConfigManager = class
 
   private
-    { private �錾 }
+    { private 宣言 }
     NetEncoding: TNetEncoding;
 
 
@@ -18,7 +18,7 @@ type
     function Encrypt(const Value : string): string;
     function Decrypt(const Value : string): string;
   public
-    { public �錾 }
+    { public 宣言 }
     AccessToken: string;
     AccessTokenSecret: string;
 
