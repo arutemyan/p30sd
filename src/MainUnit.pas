@@ -317,9 +317,15 @@ var
   RealThumbImgLineItemMax: Integer; // 横＆縦のイメージの数。16枚なら4*4で4が入る。
   RealThumbImageItemTotal: Integer;// 横＆縦のイメージの数。16枚なら16が入る。
   ResultImageLinePixelSize: Integer;
+  ImageLineFloat: Extended;
 begin
-  // 上限を超えていたら上限に
-  RealThumbImgLineItemMax := Trunc(Sqrt(Extended(ThumbImages.Count)) + 0.5);
+  ImageLineFloat := Sqrt(Extended(ThumbImages.Count));
+  RealThumbImgLineItemMax := Trunc(ImageLineFloat);
+   If Frac(ImageLineFloat) <> 0 Then
+   begin
+     //切り上げ対応
+     RealThumbImgLineItemMax := RealThumbImgLineItemMax + 1;
+   end;
   if (RealThumbImgLineItemMax > ThumbnailResulImgLineItemMax) then
       RealThumbImgLineItemMax := ThumbnailResulImgLineItemMax;
 
