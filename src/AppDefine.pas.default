@@ -1,4 +1,4 @@
-unit AppDefine;
+﻿unit AppDefine;
 
 interface
 
@@ -6,9 +6,9 @@ interface
 type
   TAppDefine = class
   private
-    { Private �錾 }
+    { Private 宣言 }
   public
-    { Public �錾 }
+    { Public 宣言 }
     const TwitterConsumerKey = string('');
     const TwitterConsumerSecretKey = string('');
   end;
