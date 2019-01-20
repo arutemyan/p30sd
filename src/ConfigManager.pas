@@ -86,7 +86,6 @@ begin
   finally
     IniFile.Free;
   end;
-  Save();
 end;
 
 procedure TConfigManager.Save();
