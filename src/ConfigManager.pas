@@ -30,8 +30,11 @@ implementation
 
 function TConfigManager.GetIniPath(): string;
 begin
+{$IFDEF MSWINDOWS}
+  Result := TPath.Combine(System.SysUtils.GetCurrentDir,'p30sd.ini');
+{$ELSE}
   Result := TPath.Combine(TPath.GetDocumentsPath,'p30sd.ini');
-  Exit;
+{$ENDIF}
 end;
 
 function TConfigManager.Crypt(const Value : string) : string;
@@ -45,15 +48,15 @@ end;
 
 function TConfigManager.Decrypt(const Value : string) : string;
 begin
-  Result := Value;
-  //Result := Crypt(NetEncoding.Decode(Value));
+  //Result := Value;
+  Result := Crypt(NetEncoding.Decode(Value));
 end;
 
 
 function TConfigManager.Encrypt(const Value : string) : string;
 begin
-  Result := Value;
-  //Result := NetEncoding.Encode(Crypt(Value));
+  //Result := Value;
+  Result := NetEncoding.Encode(Crypt(Value)).Replace(#13,'').Replace(#10,'');
 end;
 
 
@@ -83,6 +86,7 @@ begin
   finally
     IniFile.Free;
   end;
+  Save();
 end;
 
 procedure TConfigManager.Save();
