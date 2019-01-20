@@ -9,3 +9,4 @@ src/Win32/*
 *.o
 src/Android/Release/libp30sd.so
 src/Android/Release/p30sd/debug/libp30sd.so
+src/AppDefine.pas
