@@ -41,7 +41,6 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { private 宣言 }
-
     procedure ExecGetTwitterRequestToken();
   public
     { public 宣言 }
@@ -92,8 +91,6 @@ var
 begin
   with MainForm do
   begin
-
-    /// grab the verifier from the edit-field
     OAuth1Authenticator.VerifierPIN := TwitterPINCode.Text;
 
     /// here, we want to change the request-token and the verifier into an access-token
@@ -118,13 +115,11 @@ begin
 
     if RESTResponse.GetSimpleValue('oauth_token', LToken) then
     begin
-      //OAuth1Authenticator.AccessToken := LToken;
       MainForm.ConfigManager.AccessToken := LToken;
     end;
 
     if RESTResponse.GetSimpleValue('oauth_token_secret', LToken) then
     begin
-      //OAuth1Authenticator.AccessTokenSecret := LToken;
       MainForm.ConfigManager.AccessTokenSecret := LToken;
     end;
 
@@ -135,7 +130,6 @@ begin
     OAuth1Authenticator.RequestTokenSecret := '';
     OAuth1Authenticator.VerifierPin := '';
 
-    //SendTwitter();
     UpdateTwitterButtonGroup();
   end;
 
@@ -161,7 +155,6 @@ begin
   with MainForm do
   begin
 
-    /// we need to transfer the data here manually
     OAuth1Authenticator.ConsumerKey := TAppDefine.TwitterConsumerKey;
     OAuth1Authenticator.ConsumerSecret := TAppDefine.TwitterConsumerSecretKey;
 
@@ -171,7 +164,6 @@ begin
     OAuth1Authenticator.RequestTokenSecret:= '';
     OAuth1Authenticator.VerifierPIN       := '';
 
-    /// a client-id is required
     if (OAuth1Authenticator.ConsumerKey = '') then
     begin
       FMX.Dialogs.ShowMessage('A Consumer-ID ("client-id" or "app-id") is required.');
@@ -191,7 +183,6 @@ begin
     if RESTResponse.GetSimpleValue('oauth_token_secret', LToken) then
       OAuth1Authenticator.RequestTokenSecret := LToken;
 
-    /// step #2: get the auth-verifier (PIN must be entered by the user!)
     LURL := OAuth1Authenticator.AuthenticationEndpoint;
     LURL := LURL + '?oauth_token=' + OAuth1Authenticator.RequestToken;
 
