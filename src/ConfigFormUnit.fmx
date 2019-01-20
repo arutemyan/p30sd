@@ -2,39 +2,87 @@ object ConfigForm: TConfigForm
   Left = 0
   Top = 0
   Caption = 'ConfigForm'
-  ClientHeight = 515
-  ClientWidth = 640
+  ClientHeight = 495
+  ClientWidth = 613
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
-  DesignerMasterStyle = 0
-  object TwitterGetRequestToken: TButton
-    Position.X = 240.000000000000000000
-    Position.Y = 131.000000000000000000
-    Size.Width = 192.000000000000000000
-    Size.Height = 46.000000000000000000
+  OnCreate = FormCreate
+  DesignerMasterStyle = 3
+  object MainTabControl: TTabControl
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 598.000000000000000000
+    Size.Height = 477.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
-    Text = 'TwitterGetRequestToken'
-    OnClick = TwitterGetRequestTokenClick
-  end
-  object TwitterAuth: TButton
-    Position.X = 105.000000000000000000
-    Position.Y = 203.000000000000000000
-    TabOrder = 1
-    Text = 'TwitterAuth'
-    OnClick = TwitterAuthClick
-  end
-  object TwitterPINCode: TEdit
-    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabHeight = 49.000000000000000000
+    TabIndex = 0
     TabOrder = 0
-    Position.X = 181.000000000000000000
-    Position.Y = 259.000000000000000000
-  end
-  object Button1: TButton
-    Position.X = 544.000000000000000000
-    Position.Y = 384.000000000000000000
-    TabOrder = 3
-    Text = 'Button1'
+    TabPosition = PlatformDefault
+    Sizes = (
+      598s
+      428s)
+    object TwitterTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 598.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = #12484#12452#12483#12479#12540#36899#25658
+      object TwitterAuthButton: TButton
+        Position.X = 9.000000000000000000
+        Position.Y = 96.000000000000000000
+        Size.Width = 352.000000000000000000
+        Size.Height = 41.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = '2. PIN'#12467#12540#12489#12434#29992#12356#12390#35469#35388#12434#34892#12358
+        OnClick = TwitterAuthButtonClick
+      end
+      object TwitterGetRequestTokenButton: TButton
+        Hint = 'PIN'#12467#12540#12489#12434#21462#24471#12375#12289'PIN'#12467#12540#12489#12434#20837#21147#12290#12381#12398#24460'PIN'#12467#12540#12489#12434#29992#12356#12390#35469#35388#12434#34892#12358#12434#25512#12375#12390#12367#12384#12373#12356#12290
+        Position.X = 8.000000000000000000
+        Position.Y = 11.000000000000000000
+        Size.Width = 353.000000000000000000
+        Size.Height = 38.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = '1. PIN'#12467#12540#12489#12434#21462#24471#12377#12427
+        OnClick = TwitterGetRequestTokenButtonClick
+      end
+      object TwitterPINCode: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 3
+        Position.X = 200.000000000000000000
+        Position.Y = 64.000000000000000000
+        Size.Width = 161.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object Label1: TLabel
+        Position.X = 8.000000000000000000
+        Position.Y = 62.000000000000000000
+        Size.Width = 193.000000000000000000
+        Size.Height = 27.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'PIN'#12467#12540#12489#12434#20837#21147
+        TabOrder = 4
+      end
+      object TwitterAuthDeleteButton: TButton
+        Position.X = 9.000000000000000000
+        Position.Y = 152.000000000000000000
+        Size.Width = 352.000000000000000000
+        Size.Height = 41.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Twitter'#35469#35388#24773#22577#12434#21066#38500#12377#12427
+        OnClick = TwitterAuthDeleteButtonClick
+      end
+    end
   end
 end

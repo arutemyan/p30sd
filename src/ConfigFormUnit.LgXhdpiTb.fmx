@@ -1,0 +1,29 @@
+inherited ConfigForm_LgXhdpiTb: TConfigForm_LgXhdpiTb
+  ClientHeight = 829
+  ClientWidth = 480
+  DesignerMasterStyle = 3
+  inherited MainTabControl: TTabControl
+    Size.Width = 465.000000000000000000
+    Size.Height = 811.000000000000000000
+    Sizes = (
+      465s
+      762s)
+    inherited TwitterTab: TTabItem
+      Size.Width = 465.000000000000000000
+      ExplicitSize.cx = 598.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      inherited TwitterAuthButton: TButton
+        Size.Width = 448.000000000000000000
+      end
+      inherited TwitterGetRequestTokenButton: TButton
+        Size.Width = 457.000000000000000000
+      end
+      inherited TwitterPINCode: TEdit
+        Position.X = 296.000000000000000000
+      end
+      inherited TwitterAuthDeleteButton: TButton
+        Size.Width = 448.000000000000000000
+      end
+    end
+  end
+end
