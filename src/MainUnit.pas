@@ -752,11 +752,13 @@ begin
 
       RESTClient.BaseURL := 'https://api.twitter.com';
       RESTClient.Authenticator := OAuth1Authenticator;
-    {
+
+      { テストコード
       RESTRequest.Resource := '1.1/statuses/update.json';
       RESTRequest.Method := TRESTRequestMethod.rmPOST;
       RESTRequest.Params.AddItem('status', 'test', TRESTRequestParameterKind.pkGETorPOST);
-    }
+      }
+
       RESTClient.BaseURL := 'https://upload.twitter.com';
       RESTRequest.Resource := '1.1/media/upload.json';
       RESTRequest.Method := TRESTRequestMethod.rmPOST;
@@ -766,14 +768,14 @@ begin
 
       RESTRequest.Execute;
 
-    TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
-    TimeString := string.Format(
-      '30秒ドローイングを%.2d分%.2d秒やったよ！',
-      [
-        Floor(TotalSec/60000),
-        (Floor(TotalSec/1000) mod 60)
-      ]
-    );
+      TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
+      TimeString := string.Format(
+        '30秒ドローイングを%.2d分%.2d秒やったよ！',
+        [
+          Floor(TotalSec/60000),
+          (Floor(TotalSec/1000) mod 60)
+        ]
+      );
 
       RESTResponse.GetSimpleValue('media_id_string', MediaIds);
       if (MediaIds = '') then
