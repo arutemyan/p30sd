@@ -58,7 +58,7 @@ type
     IconImageList: TImageList;
     StartSettingPanel: TPanel;
     StartButton: TButton;
-    Text3: TText;
+    InitInfoText: TText;
     NormSelectBox: TComboBox;
     RESTRequest: TRESTRequest;
     RESTResponse: TRESTResponse;
@@ -105,7 +105,10 @@ type
 
     // 一枚の画像の横か縦に入るイメージの数
     // 並べるときに使用する
-    const ThumbnailResulImgLineItemMax = 8;
+    const ThumbnailResulImgLineItemMax = Integer(8);
+
+    // ツイッターに自動投稿する場合の最低イメージ数
+    const TwitterAutoPostNum = Integer(10);
 
     procedure PostTwitter(ResultFileName: string);
 
@@ -222,6 +225,17 @@ begin
   StartSettingPanel.Visible := True;
 
   ChangePen(True);
+
+  InitInfoText.Text := 'コンボボックスの値が-1以外の場合その枚数に到達した時点で自動的に保存されます。';
+  if (ConfigManager.AccessToken <>'')
+    and (ConfigManager.AccessTokenSecret<>'') then
+  begin
+    InitInfoText.Text := InitInfoText.Text + #13#10
+     + 'ツイッター連携が有効になっています。'
+     + TwitterAutoPostNum.ToString() + '枚以上書くと自動で投稿されます';
+  end;
+
+
 
 end;
 
@@ -363,7 +377,7 @@ begin
         end;
         SaveFileName:= BaseFileName + (OldIdx+1).ToString() + '.png';
         Bmp.SaveToFile(SaveFileName);
-        if ThumbImages.Count >= 10 then
+        if ThumbImages.Count >= TwitterAutoPostNum then
         begin
           // Twitter 投稿
           PostTwitter(SaveFileName);
@@ -516,6 +530,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   ConfigManager := TConfigManager.Create();
   ConfigManager.Load();
+
 {$IFDEF ANDROID32}
   PermissionsService.RequestPermissions(
     [
