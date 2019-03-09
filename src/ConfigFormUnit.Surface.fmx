@@ -1,0 +1,36 @@
+inherited ConfigForm_Surface: TConfigForm_Surface
+  ClientHeight = 1920
+  ClientWidth = 1080
+  DesignerMasterStyle = 0
+  inherited MainTabControl: TTabControl
+    Size.Width = 1080.000000000000000000
+    Size.Height = 1920.000000000000000000
+    Sizes = (
+      1080s
+      1871s)
+    inherited TwitterTab: TTabItem
+      ExplicitSize.cx = 315.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      inherited TwitterGetRequestTokenButton: TButton
+        Position.X = 1249.880737304688000000
+        Position.Y = 106.852020263671900000
+        Size.Width = 1054.000000000000000000
+      end
+      inherited TwitterPINCode: TEdit
+        Position.X = 1509.986206054688000000
+        Position.Y = 319.605377197265600000
+        Size.Width = 907.000000000000000000
+      end
+      inherited TwitterAuthButton: TButton
+        Position.X = 1249.880737304688000000
+        Position.Y = 501.785888671875000000
+        Size.Width = 1054.000000000000000000
+      end
+      inherited TwitterAuthDeleteButton: TButton
+        Position.X = 1249.880737304688000000
+        Position.Y = 736.709655761718800000
+        Size.Width = 1054.000000000000000000
+      end
+    end
+  end
+end
