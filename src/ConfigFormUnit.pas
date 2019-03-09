@@ -52,8 +52,8 @@ var
 implementation
 
 {$R *.fmx}
-{$R *.LgXhdpiTb.fmx ANDROID}
 {$R *.Windows.fmx MSWINDOWS}
+{$R *.Surface.fmx MSWINDOWS}
 
 uses
   MainUnit;
@@ -108,8 +108,12 @@ begin
     RESTClient.Authenticator := OAuth1Authenticator;
 
     RESTRequest.Method := TRESTRequestMethod.rmPOST;
-    RESTRequest.Params.AddItem('oauth_verifier', OAuth1Authenticator.VerifierPIN, TRESTRequestParameterKind.pkGETorPOST,
-      [TRESTRequestParameterOption.poDoNotEncode]);
+    RESTRequest.Params.AddItem('oauth_verifier',
+      OAuth1Authenticator.VerifierPIN,
+      TRESTRequestParameterKind.pkGETorPOST,
+      [
+        TRESTRequestParameterOption.poDoNotEncode
+      ]);
 
     RESTRequest.Execute;
 
