@@ -12,20 +12,17 @@ type
   private
     { private 宣言 }
     NetEncoding: TNetEncoding;
-    CryptKey:     string;
+    CryptKey: string;
     EncryptType: Integer;
-    AccessTokenHash: string;
-    AccessTokenSecretHash: string;
-
+    CryptKeyHash: string;
     function GetIniPath(): string;
-    function Crypt(const Value : string) : string;
-    function Encrypt(const Value : string): string;
-    function Decrypt(const Value : string): string;
+    function Crypt(const Value: string) : string;
+    function Encrypt(const Value: string): string;
+    function Decrypt(const Value: string): string;
   public
     { public 宣言 }
     AccessToken: string;
     AccessTokenSecret: string;
-
 
     procedure Load();
     procedure Save();
@@ -37,12 +34,17 @@ implementation
 constructor TConfigManager.Create();
 begin
   CryptKey := GetEnvironmentVariable('USERNAME')
-    + '_'
-    + GetEnvironmentVariable('CLIENTNAME');
-  if (CryptKey = '') then begin
+    + GetEnvironmentVariable('CLIENTNAME')
+    + GetEnvironmentVariable('OS')
+    + GetEnvironmentVariable('PROCESSOR_LEVEL');
+  if (CryptKey.IsEmpty = True) then begin
     CryptKey := '__DEFAULT__';
   end;
+  CryptKeyHash := THashSHA2.GetHashString(CryptKey);
 
+  // 更にキーに計算したハッシュ値を
+  // 連結させてさらにハッシュ化したものをキーにする。
+  CryptKey := THashSHA2.GetHashString(CryptKeyHash + '_' + CryptKey);
 end;
 
 function TConfigManager.GetIniPath(): string;
@@ -54,7 +56,7 @@ begin
 {$ENDIF}
 end;
 
-function TConfigManager.Crypt(const Value : string) : string;
+function TConfigManager.Crypt(const Value: string) : string;
 var
   CharIndex : Integer;
 begin
@@ -71,14 +73,14 @@ begin
   end;
 end;
 
-function TConfigManager.Decrypt(const Value : string) : string;
+function TConfigManager.Decrypt(const Value: string) : string;
 begin
   //Result := Value;
   Result := Crypt(NetEncoding.Decode(Value));
 end;
 
 
-function TConfigManager.Encrypt(const Value : string) : string;
+function TConfigManager.Encrypt(const Value: string) : string;
 begin
   //Result := Value;
   Result := NetEncoding.Encode(Crypt(Value)).Replace(#13,'').Replace(#10,'');
@@ -90,6 +92,7 @@ end;
 var
   IniFile: TMemIniFile;
   IniPath: string;
+  IniCryptKeyHash: string;
 begin
   NetEncoding := System.NetEncoding.TBase64Encoding.Create();
   IniPath := GetIniPath();
@@ -103,31 +106,19 @@ begin
   IniFile := TMemIniFile.Create(IniPath, TEncoding.UTF8);
   try
     EncryptType := IniFile.ReadInteger('Twitter', 'EncryptType', 0);
-    AccessToken := IniFile.ReadString('Twitter', 'AccessToken', '');
-    if AccessToken <> '' then
-    begin
-      AccessToken := Decrypt(AccessToken);
-      AccessTokenHash := IniFile.ReadString('Twitter', 'AccessTokenHash', '');
-      if (AccessTokenHash <> '')
-        and (AccessTokenHash <> THashSHA2.GetHashString(AccessToken)) then
-      begin
-        AccessToken := '';
-        AccessTokenHash := '';
-      end;
-    end;
 
-
-    AccessTokenSecret := IniFile.ReadString('Twitter', 'AccessTokenSecret', '');
-    if AccessTokenSecret <> '' then
+    // キーの値が有効かを確認する
+    IniCryptKeyHash := IniFile.ReadString('System', 'KeyHash', '');
+    if ((IniCryptKeyHash.IsEmpty = False)
+      and (IniCryptKeyHash <> CryptKeyHash)) then
     begin
-      AccessTokenSecret := Decrypt(AccessTokenSecret);
-      AccessTokenHash := IniFile.ReadString('Twitter', 'AccessTokenSecretHash', '');
-      if (AccessTokenSecretHash <> '')
-        and (AccessTokenSecretHash <> THashSHA2.GetHashString(AccessTokenSecret)) then
-      begin
-        AccessTokenSecret := '';
-        AccessTokenSecretHash := '';
-      end;
+      AccessToken := '';
+      AccessTokenSecret := '';
+    end else begin
+      AccessToken := IniFile.ReadString(
+        'Twitter', 'AccessToken', '');
+      AccessTokenSecret := IniFile.ReadString(
+        'Twitter', 'AccessTokenSecret', '');
     end;
   finally
     IniFile.Free;
@@ -159,8 +150,6 @@ begin
     if AccessToken = '' then begin
       IniFile.WriteString('Twitter', 'AccessToken', '');
     end else begin
-      IniFile.WriteString('Twitter', 'AccessTokenHash',
-        THashSHA2.GetHashString(AccessToken));
       IniFile.WriteString('Twitter', 'AccessToken',
         Encrypt(AccessToken));
     end;
@@ -168,14 +157,15 @@ begin
     if AccessTokenSecret = '' then begin
       IniFile.WriteString('Twitter', 'AccessTokenSecret', '');
     end else begin
-      IniFile.WriteString('Twitter', 'AccessTokenSecretHash',
-        THashSHA2.GetHashString(AccessTokenSecret));
       IniFile.WriteString('Twitter', 'AccessTokenSecret',
         Encrypt(AccessTokenSecret));
     end;
 
     IniFile.WriteInteger('Twitter', 'EncryptType',
       EncryptType);
+
+    IniFile.WriteString('System', 'KeyHash',
+      CryptKeyHash);
 
     IniFile.UpdateFile();
   finally
