@@ -81,6 +81,7 @@ type
     procedure ActivityDialogHide(Sender: TObject);
     procedure StartButtonClick(Sender: TObject);
     procedure OpenConfigButtonClick(Sender: TObject);
+
   private
     { private 宣言 }
     FDownPos: TPointF;
@@ -291,6 +292,7 @@ var
   ResultImageLinePixelSize: Integer;
   ImageLineFloat: Extended;
 begin
+  const FooterOneLineSize = 20;
   ImageLineFloat := Sqrt(Extended(ThumbImages.Count));
   RealThumbImgLineItemMax := Trunc(ImageLineFloat);
    If Frac(ImageLineFloat) <> 0 Then
@@ -315,6 +317,26 @@ begin
       begin
         BeginScene();
         try
+
+          // ヘッダ情報を書き込む
+          var RecF := TRectF.Create(
+            0,
+            ResultImageLinePixelSize,
+            ResultImageLinePixelSize,
+            ResultImageLinePixelSize + FooterOneLineSize
+          );
+
+          Bmp.Canvas.FillRect(RecF, 1, LineBrush);
+
+          var TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
+          FillText(RecF, string.Format('%s (%.2dmin %.2dsec) %d', [
+            Now.ToString(),
+            Floor(TotalSec/60000),
+            (Floor(TotalSec/1000) mod 60),
+            I
+          ] ), False, 1, [], TTextAlign.Leading, TTextAlign.Leading);
+
+
           for II := 0 to RealThumbImgLineItemMax-1 do
           begin
             DrawLine(
@@ -355,8 +377,10 @@ begin
   OldIdx := 0;
   ImgCount := 0;
   Bmp := TBitmap.Create();
-  Bmp.SetSize(ResultImageLinePixelSize,ResultImageLinePixelSize);
+  Bmp.SetSize(ResultImageLinePixelSize,ResultImageLinePixelSize + FooterOneLineSize);
+
   Bmp.Clear(TAlphaColorRec.White);
+
   for I := 0 to ThumbImages.Count-1 do
   begin
     if Trunc(I / RealThumbImageItemTotal) <> OldIdx then
@@ -408,9 +432,9 @@ begin
             end);
           // ダイアログを出したいので、表示されるためだけのsleep
           // てきとー。
-          Sleep(100);
-          TThread.Synchronize(nil, procedure
-            begin
+          sleep(100);
+          //TThread.Synchronize(nil, procedure
+          //  begin
               if SaveResultFromFile() = False then begin
                 ProgressFrame.HideActivity;
                 FMX.Dialogs.ShowMessage('保存に失敗しました');
@@ -418,7 +442,7 @@ begin
               end;
               ResetDrawingSetting();
               ProgressFrame.HideActivity;
-            end);
+          //  end);
         finally
           if not TThread.CheckTerminated then
             TThread.Synchronize(nil, procedure
@@ -427,16 +451,20 @@ begin
               end);
         end;
       end);
+    ProgressFrame.ShowActivity;
+
     SaveProcessingThread.FreeOnTerminate := False;
     SaveProcessingThread.Start;
   end;
-{$IFDEF WIN32 or WIN64}
-  if (SaveProcessingThread <> nil)
-    and (not SaveProcessingThread.Finished) then
-  begin
-    SaveProcessingThread.WaitFor;
-  end;
-{$ENDIF}
+
+//{$IFDEF WIN32 or WIN64}
+//  if (SaveProcessingThread <> nil)
+//    and (not SaveProcessingThread.Finished) then
+//  begin
+//    SaveProcessingThread.WaitFor;
+//  end;
+//{$ENDIF}
+  //ProgressFrame.HideActivity;
 end;
 procedure TMainForm.FinishButtonClick(Sender: TObject);
 begin
