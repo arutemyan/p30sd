@@ -33,6 +33,7 @@ type
     Label1: TLabel;
     TwitterAuthDeleteButton: TButton;
     Panel1: TPanel;
+    Label2: TLabel;
     procedure TwitterAuthButtonClick(Sender: TObject);
     procedure TwitterGetRequestTokenButtonClick(Sender: TObject);
     procedure TwitterAuthDeleteButtonClick(Sender: TObject);

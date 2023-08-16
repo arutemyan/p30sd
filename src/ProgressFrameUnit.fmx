@@ -1,0 +1,45 @@
+object ProgressFrame: TProgressFrame
+  Align = Contents
+  Size.Width = 746.000000000000000000
+  Size.Height = 630.000000000000000000
+  Size.PlatformDefault = False
+  object Background: TRectangle
+    Align = Contents
+    Fill.Color = claBlack
+    Opacity = 0.500000000000000000
+    Size.Width = 746.000000000000000000
+    Size.Height = 630.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = Resource
+    Stroke.Thickness = 0.000000000000000000
+  end
+  object FrameCircle: TCircle
+    Align = Center
+    Fill.Color = claNull
+    Size.Width = 96.000000000000000000
+    Size.Height = 96.000000000000000000
+    Size.PlatformDefault = False
+    object FrameCircle2: TCircle
+      Align = Center
+      Fill.Color = claNull
+      Size.Width = 95.000000000000000000
+      Size.Height = 79.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object CircleArc: TArc
+      Align = Contents
+      Size.Width = 96.000000000000000000
+      Size.Height = 96.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 10.000000000000000000
+      EndAngle = -90.000000000000000000
+      object CircleAnimation: TFloatAnimation
+        Duration = 1.000000000000000000
+        Loop = True
+        PropertyName = 'RotationAngle'
+        StartValue = 0.000000000000000000
+        StopValue = 360.000000000000000000
+      end
+    end
+  end
+end

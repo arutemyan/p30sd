@@ -5,7 +5,6 @@ inherited ConfigForm_Windows: TConfigForm_Windows
       340s
       446s)
     inherited TwitterTab: TTabItem
-      Size.Width = 87.000000000000000000
       ExplicitSize.cx = 573.000000000000000000
       ExplicitSize.cy = 49.000000000000000000
     end

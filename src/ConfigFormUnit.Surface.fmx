@@ -9,11 +9,23 @@ inherited ConfigForm_Surface: TConfigForm_Surface
       1080s
       1871s)
     inherited TwitterTab: TTabItem
-      Size.Width = 87.000000000000000000
       ExplicitSize.cx = 573.000000000000000000
       ExplicitSize.cy = 49.000000000000000000
       inherited Panel1: TPanel
-        Size.Width = 577.000000000000000000
+        Size.Width = 1317.000000000000000000
+        Size.Height = 1866.000000000000000000
+        inherited TwitterAuthButton: TButton
+          Size.Width = 1050.000000000000000000
+        end
+        inherited TwitterGetRequestTokenButton: TButton
+          Size.Width = 1050.000000000000000000
+        end
+        inherited TwitterPINCode: TEdit
+          Size.Width = 927.000000000000000000
+        end
+        inherited TwitterAuthDeleteButton: TButton
+          Size.Width = 1050.000000000000000000
+        end
       end
     end
   end

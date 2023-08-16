@@ -6,7 +6,8 @@ uses
   MainUnit in 'MainUnit.pas' {MainForm},
   ConfigFormUnit in 'ConfigFormUnit.pas' {ConfigForm},
   AppDefine in 'AppDefine.pas',
-  ConfigManager in 'ConfigManager.pas';
+  ConfigManager in 'ConfigManager.pas',
+  ProgressFrameUnit in 'ProgressFrameUnit.pas' {ProgressFrame: TFrame};
 
 {$R *.res}
 

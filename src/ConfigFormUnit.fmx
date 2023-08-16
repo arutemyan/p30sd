@@ -26,13 +26,14 @@ object ConfigForm: TConfigForm
       CustomIcon = <
         item
         end>
+      Enabled = False
       IsSelected = True
-      Size.Width = 338.000000000000000000
+      Size.Width = 121.000000000000000000
       Size.Height = 49.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
       TabOrder = 0
-      Text = #12484#12452#12483#12479#12540#36899#25658
+      Text = #12484#12452#12483#12479#12540#36899#25658' ('#28961#21177')'
       ExplicitSize.cx = 573.000000000000000000
       ExplicitSize.cy = 49.000000000000000000
       object Panel1: TPanel
@@ -96,6 +97,15 @@ object ConfigForm: TConfigForm
           Size.PlatformDefault = False
           Text = 'PIN'#12467#12540#12489#12434#20837#21147
           TabOrder = 5
+        end
+        object Label2: TLabel
+          Position.X = 16.000000000000000000
+          Position.Y = 201.000000000000000000
+          Size.Width = 310.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Twitter API'#20181#27096#22793#26356#12395#20276#12356#29694#22312#12399#21205#20316#12375#12414#12379#12435#12290
+          TabOrder = 6
         end
       end
     end

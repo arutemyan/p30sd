@@ -1,7 +1,5 @@
 ﻿unit MainUnit;
-
 interface
-
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
@@ -9,12 +7,12 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, System.ImageList, FMX.ImgList, FMX.Layouts, System.DateUtils,
   FMX.TextLayout, FMX.Gestures, FMX.MultiView, System.IOUtils, FMX.DialogService,
-  FGX.ProgressDialog, FMX.Edit, FMX.EditBox, FMX.ComboTrackBar, FMX.ComboEdit,
+  FMX.Edit, FMX.EditBox, FMX.ComboTrackBar, FMX.ComboEdit,
   FMX.ListBox, FMX.WebBrowser, Data.Bind.Components, Data.Bind.ObjectScope,
   REST.Client, REST.Authenticator.OAuth, System.NetEncoding,
   REST.Utils,REST.Types,REST.Response.Adapter,REST.Authenticator.Simple,
   REST.Authenticator.Basic,AppDefine, ConfigManager,
-  Data.Bind.EngExt,
+  Data.Bind.EngExt, ProgressFrameUnit,
   IPPeerClient
 {$IFDEF ANDROID32}
   ,System.Permissions,
@@ -28,7 +26,6 @@ uses
   ,REST.Authenticator.OAuth.WebForm.FMX
   {$ENDIF}
 ;
-
 type
   TMainForm = class(TForm)
     PaintImage: TImage;
@@ -44,7 +41,6 @@ type
     DrawTimeText: TText;
     NextCountTextLabel: TText;
     NextCountText: TText;
-    ActivityDialog: TfgActivityDialog;
     UseEraserButton: TSpeedButton;
     UseEraserButtonImage: TImage;
     UsePenButton: TSpeedButton;
@@ -65,7 +61,7 @@ type
     OAuth1Authenticator: TOAuth1Authenticator;
     RESTClient: TRESTClient;
     OpenConfigButton: TButton;
-
+    ProgressFrame: TProgressFrame;
     procedure FormCreate(Sender: TObject);
     procedure PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Single);
@@ -75,7 +71,6 @@ type
     procedure FinishButtonClick(Sender: TObject);
     procedure CountTimerTimer(Sender: TObject);
     procedure ResetButtonClick(Sender: TObject);
-
 
     procedure UsePenButtonClick(Sender: TObject);
     procedure UseEraserButtonClick(Sender: TObject);
@@ -88,38 +83,27 @@ type
     procedure OpenConfigButtonClick(Sender: TObject);
   private
     { private 宣言 }
-
     FDownPos: TPointF;
     FPress: Boolean; // Android や端末だとDownをうまく拾ってくれないので。
     ThumbImages: TList<TBitmap>;
     StartDrawTime: TDateTime;
     InitialDrawTime: TDateTime;
     SaveProcessingThread: TThread;
-
     // 一番最初のときはtrue. 次にMouseDownよばれたらFalse
     IsFirstStart: Boolean;
-
-
-
     const ThumbPixelSize = Integer(512);
-
     // 一枚の画像の横か縦に入るイメージの数
     // 並べるときに使用する
     const ThumbnailResulImgLineItemMax = Integer(8);
-
     // ツイッターに自動投稿する場合の最低イメージ数
     const TwitterAutoPostNum = Integer(10);
-
     procedure PostTwitter(ResultFileName: string);
-
     procedure ResetDrawingSetting();
     procedure OnNext();
     function SaveResultFromFile(): Boolean; // 次へ
     procedure ChangePen(IsPen: Boolean);
     procedure OnResize();
-
     function GetNormCount(): Integer;
-
     procedure OnMouseDown(State: TShiftState; X, Y: Single);
     procedure OnFinish();
     procedure UpdatePictureWriteCount();// 描いた枚数を更新
@@ -127,35 +111,27 @@ type
     { public 宣言 }
     ConfigManager: TConfigManager;
   end;
-
 var
   MainForm: TMainForm;
-
 implementation
-
 {$R *.fmx}
-
 uses ConfigFormUnit;
 
 function TMainForm.GetNormCount(): Integer;
 begin
   Result := Integer.Parse(NormSelectBox.Selected.Text);
 end;
-
 procedure TMainForm.ActivityDialogHide(Sender: TObject);
 begin
   SaveProcessingThread.Terminate;
 end;
-
 procedure TMainForm.ChangePen(IsPen: Boolean);
 var
   Old: Boolean;
 begin
   Old := UsePenButton.Enabled;
-
   UsePenButton.Enabled := not IsPen;
   UseEraserButton.Enabled := IsPen;
-
   if Old <> UsePenButton.Enabled then
   begin
     if IsPen = True then begin
@@ -167,7 +143,6 @@ begin
     end;
   end;
 end;
-
 procedure TMainForm.CountTimerTimer(Sender: TObject);
 var
   Sec: Int64;
@@ -192,7 +167,6 @@ begin
     ]
   );
 end;
-
 procedure TMainForm.ResetDrawingSetting();
 begin
   if ThumbImages = nil then
@@ -201,7 +175,6 @@ begin
   end else begin
     ThumbImages.Clear();
   end;
-
   PaintImage.Bitmap.Clear(TAlphaColors.White);
   PaintImage.AutoCapture := True;
   PaintImage.CanFocus := True;
@@ -209,7 +182,6 @@ begin
   self.DrawTimeText.Text := '00:00.000';
   self.TotalDrawTimeText.Text := '00:00.000';
   self.NextCountText.Text := '0';
-
   StartDrawTime := Now;
   InitialDrawTime := Now;// 初期化のためだけにしている(MouseDownで更新される)
   ThumbImageList.ClearCache();
@@ -220,12 +192,9 @@ begin
   UpdatePictureWriteCount();
   IsFirstStart := True;
   FPress := False;
-
   StartSettingPanel.Enabled := True;
   StartSettingPanel.Visible := True;
-
   ChangePen(True);
-
   InitInfoText.Text := 'コンボボックスの値が-1以外の場合その枚数に到達した時点で自動的に保存されます。';
   if (ConfigManager.AccessToken <>'')
     and (ConfigManager.AccessTokenSecret<>'') then
@@ -235,10 +204,7 @@ begin
      + TwitterAutoPostNum.ToString() + '枚以上書くと自動で投稿されます';
   end;
 
-
-
 end;
-
 procedure TMainForm.UpdatePictureWriteCount();
 begin
   if GetNormCount() > 0 then
@@ -250,7 +216,6 @@ begin
     NextCountText.Text := ThumbImages.Count.ToString();
   end;
 end;
-
 procedure TMainForm.OnNext();
 var
   Bmp: TBitmap;
@@ -294,28 +259,21 @@ begin
   end;
   ThumbImages.Add(Bmp);
   PaintImage.Bitmap.Clear(TAlphaColors.White);
-
   ListItem := ThumbnailListView.Items.Add();
   ListItem.Bitmap := Bmp;
   ListItem.Text := DrawTimeText.Text;
   ThumbnailListView.ItemIndex := ThumbnailListView.Items.Count-1;
-
   CountTimer.Enabled := false;
-
   UpdatePictureWriteCount();
-
   StartDrawTime := Now;
-
   // ノルマが設定されている場合は迎えた時点で自動終了
   if (GetNormCount() > 0) and (ThumbImages.Count = GetNormCount()) then
   begin
     OnFinish();
     Exit;
   end;
-
   ChangePen(True);
 end;
-
 
 function TMainForm.SaveResultFromFile(): Boolean;
 var
@@ -342,13 +300,11 @@ begin
    end;
   if (RealThumbImgLineItemMax > ThumbnailResulImgLineItemMax) then
       RealThumbImgLineItemMax := ThumbnailResulImgLineItemMax;
-
   // 一枚にぶちこむイメージの数。
   // ThumbnailResulImgLineItemMax^2を超えることはない。
   RealThumbImageItemTotal := RealThumbImgLineItemMax*RealThumbImgLineItemMax;
   // キャンバスサイズ（横＆縦）
   ResultImageLinePixelSize := RealThumbImgLineItemMax * ThumbPixelSize;
-
   SaveFunc := procedure()
     var
       II: Integer;
@@ -384,12 +340,10 @@ begin
         end;
       end;
     end;
-
   if ThumbImages.Count = 0 then begin
     Result := True; // 保存するものがないときも成功でいいでしょう
     Exit();
   end;
-
   BaseDir := '';
 {$IFDEF ANDROID32}
   BaseDir := System.IOUtils.TPath.GetSharedPicturesPath() + '/';
@@ -398,7 +352,6 @@ begin
   DateTimeToString(DateTimeString, 'yyyyMMdd_HHmmss_', Now);
   BaseFileName := BaseDir + 'result/' + DateTimeString;
   LineBrush := TStrokeBrush.Create(TBrushKind.Solid, TAlphaColors.Black);
-
   OldIdx := 0;
   ImgCount := 0;
   Bmp := TBitmap.Create();
@@ -425,7 +378,6 @@ begin
   end;
   Result := True;
 end;
-
 procedure TMainForm.StartButtonClick(Sender: TObject);
 begin
   //Panelを非表示にしたら開始とする
@@ -434,7 +386,6 @@ begin
   UpdatePictureWriteCount();
 end;
 
-
 procedure TMainForm.OnFinish();
 begin
   // timerが動いていたら何かしら描いてると思う
@@ -442,40 +393,37 @@ begin
   begin
     OnNext();
   end;
-
   if ThumbImages.Count = 0 then begin
     FMX.Dialogs.ShowMessage('まだ開始していないか0枚です');
     Exit;
   end;
-  if not ActivityDialog.IsShown then
+  if not ProgressFrame.Visible then
   begin
     SaveProcessingThread := TThread.CreateAnonymousThread(procedure
       begin
         try
           TThread.Synchronize(nil, procedure
             begin
-              ActivityDialog.Show;
+              ProgressFrame.ShowActivity;
             end);
-
           // ダイアログを出したいので、表示されるためだけのsleep
           // てきとー。
           Sleep(100);
-
           TThread.Synchronize(nil, procedure
             begin
               if SaveResultFromFile() = False then begin
-                ActivityDialog.Hide;
+                ProgressFrame.HideActivity;
                 FMX.Dialogs.ShowMessage('保存に失敗しました');
                 Exit;
               end;
               ResetDrawingSetting();
-              ActivityDialog.Hide;
+              ProgressFrame.HideActivity;
             end);
         finally
           if not TThread.CheckTerminated then
             TThread.Synchronize(nil, procedure
               begin
-                ActivityDialog.Hide;
+                ProgressFrame.HideActivity;
               end);
         end;
       end);
@@ -490,12 +438,10 @@ begin
   end;
 {$ENDIF}
 end;
-
 procedure TMainForm.FinishButtonClick(Sender: TObject);
 begin
   OnFinish();
 end;
-
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   ModalResult: Boolean;
@@ -510,7 +456,6 @@ begin
         begin
           ModalResult := true;
           // はいのときは保存処理をよんでおくか
-
           // timerが動いていたら何かしら描いてると思う
           if CountTimer.Enabled = True then
           begin
@@ -522,15 +467,16 @@ begin
         end;
       end);
   CanClose := ModalResult;
-
 end;
-
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   ConfigManager := TConfigManager.Create();
   ConfigManager.Load();
-
+  // Twitter API仕様変更に伴いTokenを消しとく
+  ConfigManager.AccessToken := '';
+  ConfigManager.AccessTokenSecret := '';
+  ProgressFrame.HideActivity;
 {$IFDEF ANDROID32}
   PermissionsService.RequestPermissions(
     [
@@ -550,10 +496,8 @@ begin
 {$ENDIF}
   PaintImage.Bitmap := TBitmap.Create();
   OnResize();
-
   ResetDrawingSetting();
 end;
-
 procedure TMainForm.OnMouseDown(State: TShiftState; X, Y: Single);
 begin
   if StartSettingPanel.Enabled = True then
@@ -561,13 +505,11 @@ begin
     // まだ開始してない
     Exit;
   end;
-
   if not ((ssLeft in State) or (ssTouch in State)) then begin
     Exit;
   end;
   FDownPos := TPointF.Create(X,Y);
   FPress := True;
-
   if CountTimer.Enabled = false then
   begin
     // TotalTimeの帳尻をあわせる・・・。
@@ -581,34 +523,28 @@ begin
     IsFirstStart := False;
   end;
 end;
-
 procedure TMainForm.PaintImageMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
   OnMouseDown(Shift, X, Y);
 end;
-
 procedure TMainForm.PaintImageMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Single);
 var
   ImageCanvas: TCanvas;
   Point: TPointF;
 begin
-
   if not ((ssLeft in Shift) or (ssTouch in Shift)) then
   begin
     Exit;
   end;
-
   Point := TPointF.Create(X,Y);
-
   if FPress = False then
   begin
     // ここを通るってことはDownが正しくとれてない。悲しい。
     OnMouseDown(Shift, X, Y);
     Exit;
   end;
-
   ImageCanvas := PaintImage.Bitmap.Canvas;
   with PaintImage.Bitmap.Canvas do
   begin
@@ -635,25 +571,21 @@ begin
   end;
 end;
 
-
 procedure TMainForm.PaintImageMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
   FPress := False;
 end;
-
 procedure TMainForm.OnResize();
 var
   BufferTmp: TBitmap;
   OffsetX, OffsetY, CopyWidth, CopyHeight: Integer;
 begin
-
   BufferTmp := TBitmap.Create(
     Trunc(PaintImage.Bitmap.Width),
     Trunc(PaintImage.Bitmap.Height));
   BufferTmp.CopyFromBitmap(
     PaintImage.Bitmap);
-
   if BaseLayout.Width > BaseLayout.Height then
   begin
     PaintImage.Width := BaseLayout.Height;
@@ -664,7 +596,6 @@ begin
     PaintImage.Height := BaseLayout.Width;
     PaintImage.Bitmap.SetSize(Floor(PaintImage.Width),Floor(PaintImage.Width));
   end;
-
   OffsetX := Trunc((PaintImage.Width - BufferTmp.Width) / 2);
   if OffsetX < 0 then
     OffsetX := 0;
@@ -677,32 +608,25 @@ begin
   CopyHeight := BufferTmp.Height;
   if CopyHeight > PaintImage.Height then
     CopyHeight := Trunc(PaintImage.Height);
-
   PaintImage.Bitmap.Clear(TAlphaColorRec.White);
   PaintImage.Bitmap.CopyFromBitmap(
     BufferTmp,
     TRect.Create(0,0,CopyWidth,CopyHeight),
     OffsetX, OffsetY);
   BufferTmp.Free;
-
 end;
-
 procedure TMainForm.OpenConfigButtonClick(Sender: TObject);
 begin
   ConfigForm.Show;
 end;
-
 procedure TMainForm.PaintImageResized(Sender: TObject);
 begin
   OnResize;
 end;
-
 procedure TMainForm.NextClick(Sender: TObject);
 begin
   OnNext();
 end;
-
-
 
 procedure TMainForm.ResetButtonClick(Sender: TObject);
 begin
@@ -718,17 +642,14 @@ begin
         end;
     end);
 end;
-
 procedure TMainForm.UseEraserButtonClick(Sender: TObject);
 begin
   ChangePen(False);
 end;
-
 procedure TMainForm.UsePenButtonClick(Sender: TObject);
 begin
   ChangePen(True);
 end;
-
 
 procedure TMainForm.PostTwitter(ResultFileName: string);
 var
@@ -744,7 +665,6 @@ begin
   begin
     Exit;
   end;
-
   Encoding := TNetEncoding.Create();
   with MainForm do
   begin
@@ -754,35 +674,27 @@ begin
       SendFile.Position := 0;
       SetLength(Bytes, SendFile.Size);
       SendFile.Read(Bytes, SendFile.Size);
-
       OAuth1Authenticator.RequestToken := '';
       OAuth1Authenticator.RequestTokenSecret := '';
       OAuth1Authenticator.VerifierPin := '';
-
       OAuth1Authenticator.ConsumerKey := TAppDefine.TwitterConsumerKey;
       OAuth1Authenticator.ConsumerSecret := TAppDefine.TwitterConsumerSecretKey;
-
       OAuth1Authenticator.AccessToken := ConfigManager.AccessToken;
       OAuth1Authenticator.AccessTokenSecret := ConfigManager.AccessTokenSecret;
-
       RESTClient.BaseURL := 'https://api.twitter.com';
       RESTClient.Authenticator := OAuth1Authenticator;
-
       { テストコード
       RESTRequest.Resource := '1.1/statuses/update.json';
       RESTRequest.Method := TRESTRequestMethod.rmPOST;
       RESTRequest.Params.AddItem('status', 'test', TRESTRequestParameterKind.pkGETorPOST);
       }
-
       RESTClient.BaseURL := 'https://upload.twitter.com';
       RESTRequest.Resource := '1.1/media/upload.json';
       RESTRequest.Method := TRESTRequestMethod.rmPOST;
       RESTRequest.Params.Clear;
       RESTRequest.Params.AddItem('media_data', Encoding.Base64.EncodeBytesToString(Bytes));
 
-
       RESTRequest.Execute;
-
       TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
       TimeString := string.Format(
         '30秒ドローイングを%.2d分%.2d秒やったよ！',
@@ -791,18 +703,15 @@ begin
           (Floor(TotalSec/1000) mod 60)
         ]
       );
-
       RESTResponse.GetSimpleValue('media_id_string', MediaIds);
       if (MediaIds = '') then
         Exit;
-
       RESTClient.BaseURL := 'https://api.twitter.com';
       RESTRequest.Resource := '1.1/statuses/update.json';
       RESTRequest.Method := TRESTRequestMethod.rmPOST;
       RESTRequest.Params.Clear;
       RESTRequest.Params.AddItem('status', TimeString + ' #p30sd', TRESTRequestParameterKind.pkGETorPOST);
       RESTRequest.Params.AddItem('media_ids', MediaIds);
-
       RESTRequest.Execute;
     finally
       SendFile.Free;
