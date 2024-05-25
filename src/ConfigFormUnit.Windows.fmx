@@ -4,7 +4,7 @@ inherited ConfigForm_Windows: TConfigForm_Windows
     Sizes = (
       340s
       446s)
-    inherited TwitterTab: TTabItem
+    inherited ConfigTab: TTabItem
       ExplicitSize.cx = 573.000000000000000000
       ExplicitSize.cy = 49.000000000000000000
     end

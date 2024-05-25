@@ -25,25 +25,11 @@ uses
 ;
 type
   TConfigForm = class(TForm)
-    TwitterGetRequestTokenButton: TButton;
-    TwitterAuthButton: TButton;
-    TwitterPINCode: TEdit;
     MainTabControl: TTabControl;
-    TwitterTab: TTabItem;
-    Label1: TLabel;
-    TwitterAuthDeleteButton: TButton;
+    ConfigTab: TTabItem;
     Panel1: TPanel;
-    Label2: TLabel;
-    procedure TwitterAuthButtonClick(Sender: TObject);
-    procedure TwitterGetRequestTokenButtonClick(Sender: TObject);
-    procedure TwitterAuthDeleteButtonClick(Sender: TObject);
-
-    { twitter の認証状態を見てボタンのアクティブ状態を切り替える }
-    procedure UpdateTwitterButtonGroup();
-    procedure FormCreate(Sender: TObject);
   private
     { private 宣言 }
-    procedure ExecGetTwitterRequestToken();
   public
     { public 宣言 }
   end;
@@ -59,148 +45,5 @@ implementation
 
 uses
   MainUnit;
-
-procedure TConfigForm.UpdateTwitterButtonGroup();
-var
-  IsAuth: boolean;
-begin
-  IsAuth := False;
-  if ((MainForm.ConfigManager.AccessToken<>'') and
-    (MainForm.ConfigManager.AccessTokenSecret<>'')) then
-  begin
-    IsAuth := True;
-  end;
-
-  TwitterPINCode.Enabled := not IsAuth;
-  self.TwitterAuthButton.Enabled := not IsAuth;
-  self.TwitterGetRequestTokenButton.Enabled := not IsAuth;
-  self.TwitterAuthDeleteButton.Enabled := IsAuth;
-end;
-
-procedure TConfigForm.TwitterGetRequestTokenButtonClick(Sender: TObject);
-begin
-  ExecGetTwitterRequestToken();
-end;
-
-procedure TConfigForm.FormCreate(Sender: TObject);
-begin
-  UpdateTwitterButtonGroup();
-end;
-
-procedure TConfigForm.TwitterAuthButtonClick(Sender: TObject);
-var
-  LToken: string;
-begin
-  with MainForm do
-  begin
-    OAuth1Authenticator.VerifierPIN := TwitterPINCode.Text;
-
-    /// here, we want to change the request-token and the verifier into an access-token
-    if (OAuth1Authenticator.RequestToken = '') or (OAuth1Authenticator.VerifierPIN = '') then
-    begin
-      FMX.Dialogs.ShowMessage('Request-token and verifier are both required.');
-      EXIT;
-    end;
-
-    /// we want to request an access-token
-    OAuth1Authenticator.AccessToken := '';
-    OAuth1Authenticator.AccessTokenSecret := '';
-
-    RESTClient.BaseURL := OAuth1Authenticator.AccessTokenEndpoint;
-    RESTClient.Authenticator := OAuth1Authenticator;
-
-    RESTRequest.Method := TRESTRequestMethod.rmPOST;
-    RESTRequest.Params.AddItem('oauth_verifier',
-      OAuth1Authenticator.VerifierPIN,
-      TRESTRequestParameterKind.pkGETorPOST,
-      [
-        TRESTRequestParameterOption.poDoNotEncode
-      ]);
-
-    RESTRequest.Execute;
-
-    if RESTResponse.GetSimpleValue('oauth_token', LToken) then
-    begin
-      MainForm.ConfigManager.AccessToken := LToken;
-    end;
-
-    if RESTResponse.GetSimpleValue('oauth_token_secret', LToken) then
-    begin
-      MainForm.ConfigManager.AccessTokenSecret := LToken;
-    end;
-
-    MainForm.ConfigManager.Save();
-
-    /// now we should remove the request-token
-    OAuth1Authenticator.RequestToken := '';
-    OAuth1Authenticator.RequestTokenSecret := '';
-    OAuth1Authenticator.VerifierPin := '';
-
-    UpdateTwitterButtonGroup();
-  end;
-
-end;
-
-
-
-procedure TConfigForm.TwitterAuthDeleteButtonClick(Sender: TObject);
-begin
-  MainForm.ConfigManager.AccessToken := '';
-  MainForm.ConfigManager.AccessTokenSecret := '';
-  MainForm.ConfigManager.Save();
-  UpdateTwitterButtonGroup();
-end;
-
-procedure TConfigForm.ExecGetTwitterRequestToken();
-var
-  LToken: string;
-  wv: Tfrm_OAuthWebForm;
-  LURL: string;
-begin
-
-  with MainForm do
-  begin
-
-    OAuth1Authenticator.ConsumerKey := TAppDefine.TwitterConsumerKey;
-    OAuth1Authenticator.ConsumerSecret := TAppDefine.TwitterConsumerSecretKey;
-
-    OAuth1Authenticator.AccessToken       := '';
-    OAuth1Authenticator.AccessTokenSecret := '';
-    OAuth1Authenticator.RequestToken      := '';
-    OAuth1Authenticator.RequestTokenSecret:= '';
-    OAuth1Authenticator.VerifierPIN       := '';
-
-    if (OAuth1Authenticator.ConsumerKey = '') then
-    begin
-      FMX.Dialogs.ShowMessage('A Consumer-ID ("client-id" or "app-id") is required.');
-      EXIT;
-    end;
-
-    /// step #1, get request-token
-    RESTClient.BaseURL := OAuth1Authenticator.RequestTokenEndpoint;
-    RESTClient.Authenticator := OAuth1Authenticator;
-
-    RESTRequest.Method := TRESTRequestMethod.rmPOST;
-
-    RESTRequest.Execute;
-
-    if RESTResponse.GetSimpleValue('oauth_token', LToken) then
-      OAuth1Authenticator.RequestToken := LToken;
-    if RESTResponse.GetSimpleValue('oauth_token_secret', LToken) then
-      OAuth1Authenticator.RequestTokenSecret := LToken;
-
-    LURL := OAuth1Authenticator.AuthenticationEndpoint;
-    LURL := LURL + '?oauth_token=' + OAuth1Authenticator.RequestToken;
-
-    wv := Tfrm_OAuthWebForm.Create(self);
-    try
-      wv.ShowWithURL(LURL);
-    finally
-      //wv.Release;
-    end;
-  end;
-
-end;
-
 
 end.

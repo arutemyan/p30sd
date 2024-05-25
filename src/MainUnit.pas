@@ -56,10 +56,6 @@ type
     StartButton: TButton;
     InitInfoText: TText;
     NormSelectBox: TComboBox;
-    RESTRequest: TRESTRequest;
-    RESTResponse: TRESTResponse;
-    OAuth1Authenticator: TOAuth1Authenticator;
-    RESTClient: TRESTClient;
     OpenConfigButton: TButton;
     ProgressFrame: TProgressFrame;
     procedure FormCreate(Sender: TObject);
@@ -96,9 +92,6 @@ type
     // 一枚の画像の横か縦に入るイメージの数
     // 並べるときに使用する
     const ThumbnailResulImgLineItemMax = Integer(8);
-    // ツイッターに自動投稿する場合の最低イメージ数
-    const TwitterAutoPostNum = Integer(10);
-    procedure PostTwitter(ResultFileName: string);
     procedure ResetDrawingSetting();
     procedure OnNext();
     function SaveResultFromFile(): Boolean; // 次へ
@@ -197,13 +190,6 @@ begin
   StartSettingPanel.Visible := True;
   ChangePen(True);
   InitInfoText.Text := 'コンボボックスの値が-1以外の場合その枚数に到達した時点で自動的に保存されます。';
-  if (ConfigManager.AccessToken <>'')
-    and (ConfigManager.AccessTokenSecret<>'') then
-  begin
-    InitInfoText.Text := InitInfoText.Text + #13#10
-     + 'ツイッター連携が有効になっています。'
-     + TwitterAutoPostNum.ToString() + '枚以上書くと自動で投稿されます';
-  end;
 
 end;
 procedure TMainForm.UpdatePictureWriteCount();
@@ -355,11 +341,6 @@ begin
         end;
         SaveFileName:= BaseFileName + (OldIdx+1).ToString() + '.png';
         Bmp.SaveToFile(SaveFileName);
-        if ThumbImages.Count >= TwitterAutoPostNum then
-        begin
-          // Twitter 投稿
-          PostTwitter(SaveFileName);
-        end;
       end;
     end;
   if ThumbImages.Count = 0 then begin
@@ -679,72 +660,5 @@ begin
   ChangePen(True);
 end;
 
-procedure TMainForm.PostTwitter(ResultFileName: string);
-var
- MediaIds: string;
- SendFile: TMemoryStream;
- Encoding: TNetEncoding;
- Bytes: TBytes;
- TotalSec: Int64;
- TimeString: string;
-begin
-  if (ConfigManager.AccessToken = '')
-    or (ConfigManager.AccessTokenSecret = '') then
-  begin
-    Exit;
-  end;
-  Encoding := TNetEncoding.Create();
-  with MainForm do
-  begin
-    SendFile := TMemoryStream.Create;
-    try
-      SendFile.LoadFromFile(ResultFileName);
-      SendFile.Position := 0;
-      SetLength(Bytes, SendFile.Size);
-      SendFile.Read(Bytes, SendFile.Size);
-      OAuth1Authenticator.RequestToken := '';
-      OAuth1Authenticator.RequestTokenSecret := '';
-      OAuth1Authenticator.VerifierPin := '';
-      OAuth1Authenticator.ConsumerKey := TAppDefine.TwitterConsumerKey;
-      OAuth1Authenticator.ConsumerSecret := TAppDefine.TwitterConsumerSecretKey;
-      OAuth1Authenticator.AccessToken := ConfigManager.AccessToken;
-      OAuth1Authenticator.AccessTokenSecret := ConfigManager.AccessTokenSecret;
-      RESTClient.BaseURL := 'https://api.twitter.com';
-      RESTClient.Authenticator := OAuth1Authenticator;
-      { テストコード
-      RESTRequest.Resource := '1.1/statuses/update.json';
-      RESTRequest.Method := TRESTRequestMethod.rmPOST;
-      RESTRequest.Params.AddItem('status', 'test', TRESTRequestParameterKind.pkGETorPOST);
-      }
-      RESTClient.BaseURL := 'https://upload.twitter.com';
-      RESTRequest.Resource := '1.1/media/upload.json';
-      RESTRequest.Method := TRESTRequestMethod.rmPOST;
-      RESTRequest.Params.Clear;
-      RESTRequest.Params.AddItem('media_data', Encoding.Base64.EncodeBytesToString(Bytes));
-
-      RESTRequest.Execute;
-      TotalSec := System.DateUtils.MilliSecondsBetween(InitialDrawTime, Now);
-      TimeString := string.Format(
-        '30秒ドローイングを%.2d分%.2d秒やったよ！',
-        [
-          Floor(TotalSec/60000),
-          (Floor(TotalSec/1000) mod 60)
-        ]
-      );
-      RESTResponse.GetSimpleValue('media_id_string', MediaIds);
-      if (MediaIds = '') then
-        Exit;
-      RESTClient.BaseURL := 'https://api.twitter.com';
-      RESTRequest.Resource := '1.1/statuses/update.json';
-      RESTRequest.Method := TRESTRequestMethod.rmPOST;
-      RESTRequest.Params.Clear;
-      RESTRequest.Params.AddItem('status', TimeString + ' #p30sd', TRESTRequestParameterKind.pkGETorPOST);
-      RESTRequest.Params.AddItem('media_ids', MediaIds);
-      RESTRequest.Execute;
-    finally
-      SendFile.Free;
-    end;
-  end;
-end;
 
 end.
